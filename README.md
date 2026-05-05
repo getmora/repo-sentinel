@@ -9,7 +9,7 @@ It combines local scanner outputs with Codex-led engineering review, including o
 Run this from the root of the application repository you want to audit.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash
+tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/getmora/repo-sentinel "$tmp/repo-sentinel" && bash "$tmp/repo-sentinel/install.sh" && rm -rf "$tmp"
 ```
 
 This installs or updates the global Codex skill and the repo-local `.repo-sentinel` audit bundle.
@@ -27,19 +27,19 @@ Run the same command from the application repo root. It refreshes Repo Sentinel 
 Install only the Codex skill:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --global-only
+tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/getmora/repo-sentinel "$tmp/repo-sentinel" && bash "$tmp/repo-sentinel/install.sh" --global-only && rm -rf "$tmp"
 ```
 
 Install only the repo-local audit bundle:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
+tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/getmora/repo-sentinel "$tmp/repo-sentinel" && bash "$tmp/repo-sentinel/install.sh" --repo-only && rm -rf "$tmp"
 ```
 
 Skip the dependency check:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --no-check
+tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/getmora/repo-sentinel "$tmp/repo-sentinel" && bash "$tmp/repo-sentinel/install.sh" --no-check && rm -rf "$tmp"
 ```
 
 ## Install the Codex Skill Globally

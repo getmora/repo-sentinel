@@ -50,14 +50,24 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "Fetching $REPO..."
-if ! git clone --depth 1 --branch "$REF" "$REPO_URL" "$work_dir/repo-sentinel" >/dev/null 2>&1; then
-  echo "Could not clone $REPO at ref $REF."
-  echo "Check that the repository is reachable and that git can access it."
-  exit 1
+source_dir=""
+script_path="${BASH_SOURCE[0]:-}"
+if [ -n "$script_path" ] && [ -f "$script_path" ]; then
+  script_dir="$(cd "$(dirname "$script_path")" && pwd)"
+  if [ -d "$script_dir/.repo-sentinel" ]; then
+    source_dir="$script_dir"
+  fi
 fi
 
-source_dir="$work_dir/repo-sentinel"
+if [ -z "$source_dir" ]; then
+  echo "Fetching $REPO..."
+  if ! git clone --depth 1 --branch "$REF" "$REPO_URL" "$work_dir/repo-sentinel" >/dev/null 2>&1; then
+    echo "Could not clone $REPO at ref $REF."
+    echo "Check that the repository is reachable and that git can access it."
+    exit 1
+  fi
+  source_dir="$work_dir/repo-sentinel"
+fi
 
 install_global_skill() {
   echo "Installing Codex skill to $SKILL_DEST..."

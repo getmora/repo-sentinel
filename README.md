@@ -8,23 +8,11 @@ It combines local scanner outputs with Codex-led engineering review, including o
 
 Run this from the root of the application repository you want to audit.
 
-The repository is private, so `gh` must be authenticated with access to `getmora/repo-sentinel`.
-
 ```sh
-TMP="$(mktemp -d)" \
-&& gh repo clone getmora/repo-sentinel "$TMP/repo-sentinel" -- --depth 1 \
-&& mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final \
-&& rsync -a --delete \
-  --exclude 'reports/raw/***' \
-  --exclude 'reports/normalized/***' \
-  --exclude 'reports/final/***' \
-  "$TMP/repo-sentinel/.repo-sentinel/" .repo-sentinel/ \
-&& chmod +x .repo-sentinel/scripts/setup.sh .repo-sentinel/scripts/audit.sh .repo-sentinel/scripts/normalize.mjs \
-&& touch .gitignore \
-&& for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/"; do grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore; done \
-&& rm -rf "$TMP" \
-&& bash .repo-sentinel/scripts/setup.sh --check
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash
 ```
+
+This installs or updates the global Codex skill and the repo-local `.repo-sentinel` audit bundle.
 
 ## Update an Existing Installation
 
@@ -34,9 +22,29 @@ Run the same command from the application repo root. It refreshes Repo Sentinel 
 - `.repo-sentinel/reports/normalized/`
 - `.repo-sentinel/reports/final/`
 
+## Install Options
+
+Install only the Codex skill:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --global-only
+```
+
+Install only the repo-local audit bundle:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
+```
+
+Skip the dependency check:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --no-check
+```
+
 ## Install the Codex Skill Globally
 
-If you want Codex to discover the skill outside a repo-local install, run this after cloning or installing Repo Sentinel:
+If you already cloned this repository and want to install the skill manually:
 
 ```sh
 mkdir -p "$HOME/.codex/skills" \

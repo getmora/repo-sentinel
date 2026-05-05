@@ -85,6 +85,22 @@ node .repo-sentinel/scripts/normalize.mjs
 
 ## Invoke the Codex Skill
 
+After global installation, invoke the skill in Codex with:
+
+```text
+$repo-sentinel run a quick audit
+```
+
+For a full audit:
+
+```text
+$repo-sentinel run a full audit
+```
+
+The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
+
+If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
+
 ```text
 Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo-sentinel/reports/final/audit-report.md.
 ```

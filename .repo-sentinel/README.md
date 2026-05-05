@@ -112,6 +112,22 @@ Full audits run available core scanners plus available optional full-audit scann
 
 ## Invoke the Codex Skill
 
+After global installation, invoke the skill in Codex with:
+
+```text
+$repo-sentinel run a quick audit
+```
+
+For a full audit:
+
+```text
+$repo-sentinel run a full audit
+```
+
+The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
+
+If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
+
 Use this instruction:
 
 ```text

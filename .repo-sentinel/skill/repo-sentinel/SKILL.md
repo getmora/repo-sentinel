@@ -9,16 +9,31 @@ Use this skill to perform a structured repository audit by combining local scann
 
 ## Workflow
 
-1. Run `.repo-sentinel/scripts/setup.sh --check`.
-2. Run `.repo-sentinel/scripts/audit.sh --quick` by default.
-3. Run `.repo-sentinel/scripts/audit.sh --full` only when the user asks for a full audit.
-4. Run `node .repo-sentinel/scripts/normalize.mjs`.
-5. Read `.repo-sentinel/reports/normalized/index.md`.
-6. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
-7. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
-8. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
-9. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
-10. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
+1. If `.repo-sentinel/scripts/audit.sh` is missing, bootstrap the repo-local bundle with `curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only`.
+2. Run `.repo-sentinel/scripts/setup.sh --check`.
+3. Run `.repo-sentinel/scripts/audit.sh --quick` by default.
+4. Run `.repo-sentinel/scripts/audit.sh --full` only when the user asks for a full audit.
+5. Run `node .repo-sentinel/scripts/normalize.mjs`.
+6. Read `.repo-sentinel/reports/normalized/index.md`.
+7. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
+8. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
+9. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
+10. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
+11. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
+
+## Invocation
+
+After the skill is installed globally, users can invoke it by naming the skill in chat:
+
+```text
+$repo-sentinel run a quick audit
+```
+
+```text
+$repo-sentinel run a full audit
+```
+
+If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
 
 ## Subagent Use
 

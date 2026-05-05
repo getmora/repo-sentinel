@@ -26,11 +26,12 @@ Run this from the root of the application repository you want to audit.
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
 ```
 
-This installs or updates the repo-local `.repo-sentinel` audit bundle. Existing generated reports are preserved under:
+This installs or updates the repo-local `.repo-sentinel` audit bundle and creates `.repo_sentinal/` for the human-facing audit report. Existing generated reports are preserved under:
 
 - `.repo-sentinel/reports/raw/`
 - `.repo-sentinel/reports/normalized/`
 - `.repo-sentinel/reports/final/`
+- `.repo_sentinal/`
 
 ## Install Options
 
@@ -99,20 +100,23 @@ $repo-sentinel run a full audit
 
 The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
 
+After an audit, the final report is available at `.repo_sentinal/audit-report.md`.
+
 If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
 
 ```text
-Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo-sentinel/reports/final/audit-report.md.
+Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo_sentinal/audit-report.md.
 ```
 
 For a full audit:
 
 ```text
-Use the repo-sentinel skill to run a full repository audit and write the final report to .repo-sentinel/reports/final/audit-report.md.
+Use the repo-sentinel skill to run a full repository audit and write the final report to .repo_sentinal/audit-report.md.
 ```
 
 ## Reports
 
 - Raw scanner output: `.repo-sentinel/reports/raw/`
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
-- Final audit report: `.repo-sentinel/reports/final/audit-report.md`
+- Internal final audit report: `.repo-sentinel/reports/final/audit-report.md`
+- Human-facing audit report: `.repo_sentinal/audit-report.md`

@@ -4,6 +4,7 @@ set -u
 RAW_DIR=".repo-sentinel/reports/raw"
 NORMALIZED_DIR=".repo-sentinel/reports/normalized"
 FINAL_DIR=".repo-sentinel/reports/final"
+USER_REPORT_DIR=".repo_sentinal"
 MODE="${1:---quick}"
 
 usage() {
@@ -21,7 +22,7 @@ case "$MODE" in
   *) usage; exit 2 ;;
 esac
 
-mkdir -p "$RAW_DIR" "$NORMALIZED_DIR" "$FINAL_DIR"
+mkdir -p "$RAW_DIR" "$NORMALIZED_DIR" "$FINAL_DIR" "$USER_REPORT_DIR"
 
 manifest_tmp="$RAW_DIR/run-manifest.tmp"
 manifest="$RAW_DIR/run-manifest.json"

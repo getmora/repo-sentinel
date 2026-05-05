@@ -84,11 +84,11 @@ install_repo_bundle() {
   rsync -a "$source_dir/.repo-sentinel/scripts" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/prompts" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/skill" .repo-sentinel/
-  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final
+  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final .repo_sentinal
   chmod +x .repo-sentinel/scripts/setup.sh .repo-sentinel/scripts/audit.sh .repo-sentinel/scripts/normalize.mjs
 
   touch .gitignore
-  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/"; do
+  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/" ".repo_sentinal/"; do
     grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
   done
 

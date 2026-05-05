@@ -1,6 +1,11 @@
 # Repo Sentinel Final Report Prompt
 
-Produce the final repository audit report and write it to `.repo-sentinel/reports/final/audit-report.md`.
+Produce the final repository audit report and write it to both:
+
+- `.repo-sentinel/reports/final/audit-report.md`
+- `.repo_sentinal/audit-report.md`
+
+Create `.repo_sentinal/` if it does not exist.
 
 The report must include:
 

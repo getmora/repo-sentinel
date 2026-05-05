@@ -20,6 +20,7 @@ Use this skill to perform a structured repository audit by combining local scann
 9. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
 10. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
 11. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
+12. Also create `.repo_sentinal/` and write the same final report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
 
 ## Invocation
 
@@ -67,4 +68,5 @@ Use one adversarial-review subagent when available after the main draft findings
 
 - Raw scanner output: `.repo-sentinel/reports/raw/`
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
-- Final report: `.repo-sentinel/reports/final/audit-report.md`
+- Internal final report: `.repo-sentinel/reports/final/audit-report.md`
+- Human-facing audit report: `.repo_sentinal/audit-report.md`

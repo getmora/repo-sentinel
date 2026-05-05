@@ -68,9 +68,12 @@ install_global_skill() {
 
 install_repo_bundle() {
   echo "Installing repo-local bundle to $(pwd)/.repo-sentinel..."
-  rsync -a --delete \
-    --exclude 'reports/' \
-    "$source_dir/.repo-sentinel/" .repo-sentinel/
+  mkdir -p .repo-sentinel
+  rm -rf .repo-sentinel/scripts .repo-sentinel/prompts .repo-sentinel/skill .repo-sentinel/README.md
+  rsync -a "$source_dir/.repo-sentinel/README.md" .repo-sentinel/
+  rsync -a "$source_dir/.repo-sentinel/scripts" .repo-sentinel/
+  rsync -a "$source_dir/.repo-sentinel/prompts" .repo-sentinel/
+  rsync -a "$source_dir/.repo-sentinel/skill" .repo-sentinel/
   mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final
   chmod +x .repo-sentinel/scripts/setup.sh .repo-sentinel/scripts/audit.sh .repo-sentinel/scripts/normalize.mjs
 

@@ -6,7 +6,7 @@ REPO_URL="https://github.com/$REPO.git"
 REF="${REPO_SENTINEL_REF:-main}"
 CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 SKILL_DEST="$CODEX_SKILLS_DIR/repo-sentinel"
-MODE="all"
+MODE="global-only"
 RUN_CHECK=1
 
 usage() {
@@ -15,9 +15,9 @@ Usage: install.sh [--all|--repo-only|--global-only] [--no-check]
 
 Installs or updates Repo Sentinel.
 
-  --all          Install the Codex skill and repo-local audit bundle. Default.
+  --global-only  Install only the Codex skill into ~/.codex/skills. Default.
+  --all          Install the Codex skill and repo-local audit bundle.
   --repo-only    Install only .repo-sentinel into the current repository.
-  --global-only  Install only the Codex skill into ~/.codex/skills.
   --no-check     Skip dependency check after repo-local install.
 EOF
 }

@@ -6,6 +6,28 @@ It combines local scanner outputs with Codex-led engineering review, including o
 
 Quick audits use `semgrep`, `trivy`, and `gitleaks` when available. Full audits also use optional scanners for SBOMs, dependency vulnerabilities, infrastructure-as-code, GitHub Actions, repository security posture, shell scripts, Dockerfiles, and JavaScript/TypeScript codebase health when those tools and matching inputs are present.
 
+## Scanner Coverage
+
+Quick audits run available core scanners:
+
+- `semgrep`
+- `trivy`
+- `gitleaks`
+
+Full audits also run available optional scanners:
+
+- `syft`
+- `grype`
+- `checkov`
+- `zizmor`
+- `osv-scanner`
+- `scorecard`
+- `shellcheck`
+- `hadolint`
+- `fallow`
+
+Some full-audit scanners only run when matching inputs exist. `zizmor` runs for GitHub Actions inputs, `shellcheck` runs for shell scripts, `hadolint` runs for Dockerfiles, and `fallow` runs for JavaScript/TypeScript repos with `package.json`.
+
 ## Install Globally
 
 Run this once to install or update the Codex skill globally.
@@ -68,6 +90,14 @@ mkdir -p "$HOME/.codex/skills" \
 
 ```sh
 bash .repo-sentinel/scripts/setup.sh --check
+```
+
+The setup check prints install guidance for missing tools. On macOS, most tools use Homebrew install commands; `fallow` uses `npm install -g fallow`.
+
+Fallow can also be installed per JavaScript/TypeScript repo:
+
+```sh
+npm install --save-dev fallow
 ```
 
 ## Run an Audit

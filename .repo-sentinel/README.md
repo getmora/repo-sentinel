@@ -25,6 +25,15 @@ Optional full-audit tools:
 - `hadolint`
 - `fallow`
 
+Quick audits run available core scanners only. Full audits also run available optional scanners when the tool is installed and matching repository inputs exist.
+
+Input-gated full-audit scanners:
+
+- `zizmor` runs when GitHub Actions inputs exist.
+- `shellcheck` runs when shell scripts or shell shebang files exist.
+- `hadolint` runs when Dockerfiles exist.
+- `fallow` runs when `package.json` exists and either `./node_modules/.bin/fallow` or global `fallow` is available.
+
 ## Install Globally
 
 Run this once to install or update the Codex skill globally.
@@ -91,10 +100,16 @@ bash .repo-sentinel/scripts/setup.sh --check
 
 The check mode prints missing tools and install guidance. It exits successfully even when tools are missing.
 
-To install missing tools on macOS with Homebrew:
+To install missing tools on macOS where supported:
 
 ```sh
 bash .repo-sentinel/scripts/setup.sh --install
+```
+
+Most macOS installs use Homebrew. Fallow uses `npm install -g fallow`, or it can be installed in a JavaScript/TypeScript repo with:
+
+```sh
+npm install --save-dev fallow
 ```
 
 The setup script does not install anything unless `--install` is passed.
@@ -115,7 +130,7 @@ bash .repo-sentinel/scripts/audit.sh --full
 node .repo-sentinel/scripts/normalize.mjs
 ```
 
-Full audits run available core scanners plus available optional full-audit scanners.
+Full audits run available core scanners plus available optional full-audit scanners: `syft`, `grype`, `checkov`, `zizmor`, `osv-scanner`, `scorecard`, `shellcheck`, `hadolint`, and `fallow`.
 
 ## Invoke the Codex Skill
 

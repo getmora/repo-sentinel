@@ -4,6 +4,8 @@ Repo Sentinel is a reusable Codex Skill and script bundle for structured reposit
 
 It combines local scanner outputs with Codex-led engineering review, including optional parallel review subagents when the active Codex environment supports them.
 
+Quick audits use `semgrep`, `trivy`, and `gitleaks` when available. Full audits also use optional scanners for SBOMs, dependency vulnerabilities, infrastructure-as-code, GitHub Actions, repository security posture, shell scripts, Dockerfiles, and JavaScript/TypeScript codebase health when those tools and matching inputs are present.
+
 ## Install Globally
 
 Run this once to install or update the Codex skill globally.

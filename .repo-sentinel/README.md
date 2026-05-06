@@ -18,6 +18,12 @@ Optional full-audit tools:
 - `grype`
 - `checkov`
 - `jq`
+- `zizmor`
+- `osv-scanner`
+- `scorecard`
+- `shellcheck`
+- `hadolint`
+- `fallow`
 
 ## Install Globally
 

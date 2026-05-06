@@ -13,7 +13,7 @@ test("skill defines separate technical and non-technical audit reports", () => {
     "utf8",
   );
 
-  assert.match(skill, /\.repo-sentinel\/prompts\/non-technical-report\.md/);
+  assert.match(skill, /<runtime_dir>\/prompts\/non-technical-report\.md/);
   assert.match(skill, /\.repo-sentinel\/reports\/final\/audit-report\.md/);
   assert.match(skill, /\.repo_sentinal\/audit-report\.md/);
   assert.match(finalPrompt, /technical/i);

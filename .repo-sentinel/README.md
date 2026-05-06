@@ -1,6 +1,6 @@
 # Repo Sentinel
 
-Repo Sentinel performs a structured repository audit by combining local scanner outputs with Codex-led engineering review.
+Repo Sentinel performs a structured repository audit by combining local scanner outputs with Codex-led engineering review from a globally installed skill runtime.
 
 ## Tools
 
@@ -60,7 +60,7 @@ For a full audit:
 $repo-sentinel run a full audit
 ```
 
-The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
+The globally installed skill runs its own bundled scripts and prompts against the current repository. Application repos do not need a copied Repo Sentinel runtime.
 
 ## Report Outputs
 
@@ -99,7 +99,7 @@ Run this from the root of the application repository you want to audit.
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all
 ```
 
-This installs the global skill, installs or updates the repo-local `.repo-sentinel` audit bundle, creates `.repo_sentinal/` for the human-facing audit report, and opens the tool install wizard. Existing generated reports are preserved under:
+This installs or updates the global skill runtime, initializes local report folders, creates `.repo_sentinal/` for the plain-English audit report, and opens the tool install wizard. It does not copy scanner scripts or prompts into the application repo. Existing generated reports are preserved under:
 
 - `.repo-sentinel/reports/raw/`
 - `.repo-sentinel/reports/normalized/`
@@ -110,15 +110,17 @@ Tool installation is wizard-driven. On macOS, selected tools can be installed wi
 
 After install attempts, Repo Sentinel re-checks the scanner tools and reports any that are still missing.
 
+If a repository already has an older `.repo-sentinel` runtime bundle, `--all` removes the old local runtime files while preserving generated reports. The current audit logic comes from the globally installed skill runtime.
+
 ## Install Options
 
-Install the global skill and repo-local audit bundle together:
+Install the global skill and initialize report folders in the current repo:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all
 ```
 
-Install only the repo-local audit bundle:
+Install the legacy repo-local runtime bundle:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
@@ -127,7 +129,7 @@ curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.
 Skip the dependency check:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only --no-check
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --no-check
 ```
 
 ## Install the Codex Skill Globally
@@ -136,13 +138,15 @@ If you already cloned this repository and want to install the skill manually:
 
 ```sh
 mkdir -p "$HOME/.codex/skills" \
-&& rsync -a .repo-sentinel/skill/repo-sentinel/ "$HOME/.codex/skills/repo-sentinel/"
+&& mkdir -p "$HOME/.codex/skills/repo-sentinel" \
+&& rsync -a .repo-sentinel/skill/repo-sentinel/ "$HOME/.codex/skills/repo-sentinel/" \
+&& rsync -a .repo-sentinel/scripts .repo-sentinel/prompts .repo-sentinel/README.md .repo-sentinel/VERSION "$HOME/.codex/skills/repo-sentinel/"
 ```
 
 ## Check Dependencies
 
 ```sh
-bash .repo-sentinel/scripts/setup.sh --check
+bash "$HOME/.codex/skills/repo-sentinel/scripts/setup.sh" --check
 ```
 
 The check mode prints missing tools and install guidance. It exits successfully even when tools are missing.
@@ -150,17 +154,17 @@ The check mode prints missing tools and install guidance. It exits successfully 
 To install missing tools on macOS where supported:
 
 ```sh
-bash .repo-sentinel/scripts/setup.sh --install
+bash "$HOME/.codex/skills/repo-sentinel/scripts/setup.sh" --install
 ```
 
-The installer opens the tool install wizard by default after global, repo-local, and combined installs. Use `--no-check` to skip the wizard.
+The installer opens the tool install wizard by default after global, app-repo initialization, and legacy repo-local installs. Use `--no-check` to skip the wizard.
 
 Install mode re-checks scanner availability after install attempts. The wizard reports tools that remain uninstalled without failing unless a selected tool could not be installed.
 
 To choose missing tools interactively:
 
 ```sh
-bash .repo-sentinel/scripts/setup.sh --wizard
+bash "$HOME/.codex/skills/repo-sentinel/scripts/setup.sh" --wizard
 ```
 
 Most macOS installs use Homebrew. Fallow uses `npm install -g fallow`, or it can be installed in a JavaScript/TypeScript repo with:
@@ -174,8 +178,8 @@ The setup script does not install anything unless `--install` is passed.
 ## Run a Quick Audit
 
 ```sh
-bash .repo-sentinel/scripts/audit.sh --quick
-node .repo-sentinel/scripts/normalize.mjs
+bash "$HOME/.codex/skills/repo-sentinel/scripts/audit.sh" --quick
+node "$HOME/.codex/skills/repo-sentinel/scripts/normalize.mjs"
 ```
 
 Quick audits run available core scanners only.
@@ -183,8 +187,8 @@ Quick audits run available core scanners only.
 ## Run a Full Audit
 
 ```sh
-bash .repo-sentinel/scripts/audit.sh --full
-node .repo-sentinel/scripts/normalize.mjs
+bash "$HOME/.codex/skills/repo-sentinel/scripts/audit.sh" --full
+node "$HOME/.codex/skills/repo-sentinel/scripts/normalize.mjs"
 ```
 
 Full audits run available core scanners plus available optional full-audit scanners: `syft`, `grype`, `checkov`, `zizmor`, `osv-scanner`, `scorecard`, `shellcheck`, `hadolint`, and `fallow`.
@@ -194,15 +198,15 @@ Full audits run scanners in parallel batches with `REPO_SENTINEL_JOBS=3` by defa
 To run scanners sequentially for debugging:
 
 ```sh
-REPO_SENTINEL_JOBS=1 bash .repo-sentinel/scripts/audit.sh --full
-node .repo-sentinel/scripts/normalize.mjs
+REPO_SENTINEL_JOBS=1 bash "$HOME/.codex/skills/repo-sentinel/scripts/audit.sh" --full
+node "$HOME/.codex/skills/repo-sentinel/scripts/normalize.mjs"
 ```
 
 To include git history in Gitleaks secret scanning:
 
 ```sh
-REPO_SENTINEL_GITLEAKS_HISTORY=1 bash .repo-sentinel/scripts/audit.sh --full
-node .repo-sentinel/scripts/normalize.mjs
+REPO_SENTINEL_GITLEAKS_HISTORY=1 bash "$HOME/.codex/skills/repo-sentinel/scripts/audit.sh" --full
+node "$HOME/.codex/skills/repo-sentinel/scripts/normalize.mjs"
 ```
 
 ## Reports
@@ -218,7 +222,7 @@ Repo Sentinel reviews context and intent, architecture, data and state integrity
 
 ## Files Safe to Commit
 
-Commit the Repo Sentinel scripts, prompts, skill, README, and `.gitignore` entries.
+Commit `.gitignore` entries added for generated reports. Only commit Repo Sentinel scripts, prompts, skill, README, and `.repo-sentinel/VERSION` if you intentionally use the legacy repo-local runtime bundle.
 
 Do not commit generated report output from:
 

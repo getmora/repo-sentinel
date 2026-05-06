@@ -16,8 +16,8 @@ Usage: install.sh [--all|--repo-only|--global-only] [--install-tools] [--no-chec
 Installs or updates Repo Sentinel.
 
   --global-only  Install only the Codex skill into ~/.codex/skills. Default.
-  --all          Install the Codex skill and repo-local audit bundle.
-  --repo-only    Install only .repo-sentinel into the current repository.
+  --all          Install the Codex skill and initialize report folders in this repository.
+  --repo-only    Install the legacy repo-local runtime bundle into this repository.
   --install-tools Run the install wizard. This is now the default.
   --no-check     Skip the dependency wizard after install.
 EOF
@@ -75,14 +75,33 @@ install_global_skill() {
   echo "Installing Codex skill to $SKILL_DEST..."
   mkdir -p "$CODEX_SKILLS_DIR"
   rm -rf "$SKILL_DEST"
+  mkdir -p "$SKILL_DEST"
   rsync -a "$source_dir/.repo-sentinel/skill/repo-sentinel/" "$SKILL_DEST/"
+  rsync -a "$source_dir/.repo-sentinel/README.md" "$SKILL_DEST/"
+  rsync -a "$source_dir/.repo-sentinel/VERSION" "$SKILL_DEST/"
+  rsync -a "$source_dir/.repo-sentinel/scripts" "$SKILL_DEST/"
+  rsync -a "$source_dir/.repo-sentinel/prompts" "$SKILL_DEST/"
+  chmod +x "$SKILL_DEST/scripts/setup.sh" "$SKILL_DEST/scripts/audit.sh" "$SKILL_DEST/scripts/normalize.mjs"
+}
+
+ensure_repo_outputs() {
+  echo "Initializing Repo Sentinel report folders in $(pwd)..."
+  mkdir -p .repo-sentinel
+  rm -rf .repo-sentinel/scripts .repo-sentinel/prompts .repo-sentinel/skill .repo-sentinel/README.md .repo-sentinel/VERSION
+  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final .repo_sentinal
+
+  touch .gitignore
+  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/" ".repo_sentinal/"; do
+    grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
+  done
 }
 
 install_repo_bundle() {
-  echo "Installing repo-local bundle to $(pwd)/.repo-sentinel..."
+  echo "Installing legacy repo-local runtime bundle to $(pwd)/.repo-sentinel..."
   mkdir -p .repo-sentinel
-  rm -rf .repo-sentinel/scripts .repo-sentinel/prompts .repo-sentinel/skill .repo-sentinel/README.md
+  rm -rf .repo-sentinel/scripts .repo-sentinel/prompts .repo-sentinel/skill .repo-sentinel/README.md .repo-sentinel/VERSION
   rsync -a "$source_dir/.repo-sentinel/README.md" .repo-sentinel/
+  rsync -a "$source_dir/.repo-sentinel/VERSION" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/scripts" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/prompts" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/skill" .repo-sentinel/
@@ -97,7 +116,11 @@ install_repo_bundle() {
 }
 
 setup_script_path() {
-  if [ -x ".repo-sentinel/scripts/setup.sh" ]; then
+  if [ "$MODE" = "repo-only" ] && [ -x ".repo-sentinel/scripts/setup.sh" ]; then
+    printf '%s\n' ".repo-sentinel/scripts/setup.sh"
+  elif [ -x "$SKILL_DEST/scripts/setup.sh" ]; then
+    printf '%s\n' "$SKILL_DEST/scripts/setup.sh"
+  elif [ -x ".repo-sentinel/scripts/setup.sh" ]; then
     printf '%s\n' ".repo-sentinel/scripts/setup.sh"
   else
     printf '%s\n' "$source_dir/.repo-sentinel/scripts/setup.sh"
@@ -118,7 +141,7 @@ run_dependency_wizard() {
 case "$MODE" in
   all)
     install_global_skill
-    install_repo_bundle
+    ensure_repo_outputs
     ;;
   repo-only)
     install_repo_bundle

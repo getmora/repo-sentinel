@@ -7,22 +7,26 @@ description: Use this skill when the user asks to audit a repository, review cod
 
 Use this skill to perform a structured repository audit by combining local scanner outputs with Codex-led engineering review.
 
+The directory containing this `SKILL.md` is normally the Repo Sentinel runtime directory. Use its `scripts/` and `prompts/` files while keeping the current repository as the working directory.
+
+For legacy repo-local installs, `SKILL.md` may live at `.repo-sentinel/skill/repo-sentinel/SKILL.md` while the runtime files live two levels up. If `<skill_dir>/scripts/setup.sh` is missing and `<skill_dir>/../../scripts/setup.sh` exists, use `<skill_dir>/../..` as `<runtime_dir>` instead. In that layout, `<runtime_dir>/scripts/setup.sh` resolves to `<skill_dir>/../../scripts/setup.sh` and `<runtime_dir>/prompts/review.md` resolves to `<skill_dir>/../../prompts/review.md`.
+
 ## Workflow
 
-1. If `.repo-sentinel/scripts/audit.sh` is missing, bootstrap the repo-local bundle with `curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only`.
-2. Run `.repo-sentinel/scripts/setup.sh --check`.
-3. Run `.repo-sentinel/scripts/audit.sh --quick` by default.
-4. Run `.repo-sentinel/scripts/audit.sh --full` only when the user asks for a full audit.
-5. Run `node .repo-sentinel/scripts/normalize.mjs`.
+1. Identify `<skill_dir>` as the directory containing this `SKILL.md`, then identify `<runtime_dir>` using the runtime resolution rule above.
+2. Run `bash <runtime_dir>/scripts/setup.sh --check` from the repository root.
+3. Run `bash <runtime_dir>/scripts/audit.sh --quick` from the repository root by default.
+4. Run `bash <runtime_dir>/scripts/audit.sh --full` from the repository root only when the user asks for a full audit.
+5. Run `node <runtime_dir>/scripts/normalize.mjs` from the repository root.
 6. Read `.repo-sentinel/reports/normalized/index.md`.
 7. For Gitleaks evidence, use the normalized index first. Inspect `.repo-sentinel/reports/raw/gitleaks.json` only for targeted confirmation of a specific redacted finding.
 8. Perform the context pass before interpreting scanner findings, especially Fallow output.
 9. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
-10. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
-11. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
-12. Use `.repo-sentinel/prompts/final-report.md` to produce the technical final report.
+10. Use `<runtime_dir>/prompts/review.md` to produce the main findings.
+11. Use `<runtime_dir>/prompts/adversarial-review.md` to challenge the findings.
+12. Use `<runtime_dir>/prompts/final-report.md` to produce the technical final report.
 13. Write the technical final report to `.repo-sentinel/reports/final/audit-report.md`.
-14. Use `.repo-sentinel/prompts/non-technical-report.md` to produce a plain-English report for non-technical readers.
+14. Use `<runtime_dir>/prompts/non-technical-report.md` to produce a plain-English report for non-technical readers.
 15. Create `.repo_sentinal/` and write the plain-English report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
 
 ## Invocation

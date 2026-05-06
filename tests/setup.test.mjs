@@ -83,8 +83,26 @@ exit 0
   assert.match(result.stdout, /  \[missing\] node/);
 });
 
-test("skill bootstrap does not require scanner tool installation", () => {
+test("skill does not bootstrap a repo-local runtime bundle", () => {
   const skill = fs.readFileSync(skillPath, "utf8");
-  assert.match(skill, /--repo-only`/);
+  assert.match(skill, /<runtime_dir>\/scripts\/setup\.sh/);
   assert.doesNotMatch(skill, /--repo-only --install-tools/);
+  assert.doesNotMatch(skill, /--repo-only/);
+});
+
+test("skill uses the globally installed runtime instead of a repo-local bundle", () => {
+  const skill = fs.readFileSync(skillPath, "utf8");
+  assert.match(skill, /directory containing this `SKILL\.md`/i);
+  assert.match(skill, /scripts\/setup\.sh/);
+  assert.match(skill, /scripts\/audit\.sh/);
+  assert.match(skill, /prompts\/review\.md/);
+  assert.doesNotMatch(skill, /--repo-only/);
+  assert.doesNotMatch(skill, /stale repo-local bundle/i);
+});
+
+test("skill resolves legacy repo-local runtime bundles", () => {
+  const skill = fs.readFileSync(skillPath, "utf8");
+  assert.match(skill, /legacy repo-local/i);
+  assert.match(skill, /\.\.\/\.\.\/scripts\/setup\.sh/);
+  assert.match(skill, /\.\.\/\.\.\/prompts\/review\.md/);
 });

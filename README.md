@@ -40,6 +40,36 @@ curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.
 
 This installs the skill to `~/.codex/skills/repo-sentinel`. Restart Codex after installing or updating the skill.
 
+## Invoke the Codex Skill
+
+After global installation, invoke the skill in Codex with:
+
+```text
+$repo-sentinel run a quick audit
+```
+
+For a full audit:
+
+```text
+$repo-sentinel run a full audit
+```
+
+The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
+
+After an audit, the final report is available at `.repo_sentinal/audit-report.md`.
+
+If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
+
+```text
+Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo_sentinal/audit-report.md.
+```
+
+For a full audit:
+
+```text
+Use the repo-sentinel skill to run a full repository audit and write the final report to .repo_sentinal/audit-report.md.
+```
+
 ## Update the Global Skill
 
 Run the same global install command again.
@@ -114,36 +144,6 @@ Fallow can also be installed per JavaScript/TypeScript repo:
 
 ```sh
 npm install --save-dev fallow
-```
-
-## Invoke the Codex Skill
-
-After global installation, invoke the skill in Codex with:
-
-```text
-$repo-sentinel run a quick audit
-```
-
-For a full audit:
-
-```text
-$repo-sentinel run a full audit
-```
-
-The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
-
-After an audit, the final report is available at `.repo_sentinal/audit-report.md`.
-
-If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
-
-```text
-Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo_sentinal/audit-report.md.
-```
-
-For a full audit:
-
-```text
-Use the repo-sentinel skill to run a full repository audit and write the final report to .repo_sentinal/audit-report.md.
 ```
 
 ## Run an Audit

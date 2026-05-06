@@ -46,6 +46,40 @@ curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.
 
 This installs the skill to `~/.codex/skills/repo-sentinel`. Restart Codex after installing or updating the skill.
 
+## Invoke the Codex Skill
+
+After global installation, invoke the skill in Codex with:
+
+```text
+$repo-sentinel run a quick audit
+```
+
+For a full audit:
+
+```text
+$repo-sentinel run a full audit
+```
+
+The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
+
+After an audit, the final report is available at `.repo_sentinal/audit-report.md`.
+
+If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
+
+Use this instruction:
+
+```text
+Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo_sentinal/audit-report.md.
+```
+
+For a full audit:
+
+```text
+Use the repo-sentinel skill to run a full repository audit and write the final report to .repo_sentinal/audit-report.md.
+```
+
+When supported by the active Codex environment, the skill uses parallel subagents for independent review slices and an adversarial review pass. The main agent keeps control of final prioritization and writes the report.
+
 ## Update the Global Skill
 
 Run the same global install command again.
@@ -129,40 +163,6 @@ npm install --save-dev fallow
 ```
 
 The setup script does not install anything unless `--install` is passed.
-
-## Invoke the Codex Skill
-
-After global installation, invoke the skill in Codex with:
-
-```text
-$repo-sentinel run a quick audit
-```
-
-For a full audit:
-
-```text
-$repo-sentinel run a full audit
-```
-
-The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
-
-After an audit, the final report is available at `.repo_sentinal/audit-report.md`.
-
-If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
-
-Use this instruction:
-
-```text
-Use the repo-sentinel skill to run a quick repository audit and write the final report to .repo_sentinal/audit-report.md.
-```
-
-For a full audit:
-
-```text
-Use the repo-sentinel skill to run a full repository audit and write the final report to .repo_sentinal/audit-report.md.
-```
-
-When supported by the active Codex environment, the skill uses parallel subagents for independent review slices and an adversarial review pass. The main agent keeps control of final prioritization and writes the report.
 
 ## Run a Quick Audit
 

@@ -26,3 +26,5 @@ The report must include:
 15. Guardrails to prevent recurrence
 
 Keep the report evidence-backed. Separate scanner evidence from Codex inference. Omit speculative findings that cannot be tied to repository evidence.
+
+For any Fallow-backed cleanup finding, state that Fallow output is cleanup-candidate evidence, not deletion proof. Include the context-pass evidence used, the remaining uncertainty, and the verification required before deleting code, exports, dependencies, routes, modules, generated artifacts, or configuration-referenced files.

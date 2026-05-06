@@ -13,4 +13,11 @@ For each finding:
 - Check whether scanner outputs were misread.
 - Identify missing high-risk areas that should be reviewed before launch.
 
+For Fallow-backed findings:
+
+- Challenge whether the context pass was sufficient.
+- Treat dead-code results as cleanup candidates, not deletion proof.
+- Remove or downgrade deletion recommendations that do not account for framework conventions, dynamic imports, public APIs, generated files, build/test tooling, runtime configuration, CLI entrypoints, scheduled jobs, or external integrations.
+- Require verification steps before any recommended removal.
+
 Preserve only findings that are evidence-backed, actionable, and relevant to the audited repository.

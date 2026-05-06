@@ -2,6 +2,8 @@
 
 Use this prompt after scanner normalization has completed and after reading `.repo-sentinel/reports/normalized/index.md`.
 
+First, perform a context pass. Summarize the repository's apparent purpose, application type, runtime, framework, package manager, deployment target, main entrypoints, build/test scripts, public API surfaces, dynamic-loading patterns, framework conventions, generated/codegen outputs, scheduled jobs, CLI entrypoints, and external integration boundaries where evidence exists.
+
 Perform a Codex-led engineering review of the repository across these domains:
 
 0. Context and intent
@@ -24,6 +26,10 @@ Perform a Codex-led engineering review of the repository across these domains:
 
 Use evidence-first reasoning. Do not invent findings. Do not include generic advice unless it is tied to repository evidence. Clearly distinguish scanner evidence from Codex inference.
 
+Use scanner output only after the context pass. If scanner evidence conflicts with repository context, explain the conflict and downgrade confidence unless source evidence resolves it.
+
+Fallow safety rule: Treat Fallow dead-code output as cleanup candidates, not deletion proof. Do not recommend deleting files, exports, dependencies, routes, modules, or generated artifacts unless the context pass supports that they are not used by framework conventions, dynamic imports, public API consumers, build tooling, tests, runtime configuration, scheduled jobs, CLI entrypoints, or external integrations. If evidence is incomplete, recommend verification steps instead of deletion.
+
 When using subagents, split the review into independent domain slices and require each subagent to return only evidence-backed findings for its slice. Merge the subagent outputs in the main agent, remove duplicates, and keep final prioritization in the main agent.
 
 Prioritize findings by severity, confidence, blast radius, and fix difficulty.
@@ -42,5 +48,13 @@ Each finding must include:
 - failure scenario
 - recommended fix
 - verification step
+
+For any finding based on Fallow output, the evidence must explicitly separate:
+
+- scanner evidence from Fallow
+- context-pass evidence from repository files
+- Codex inference
+- deletion or cleanup confidence
+- verification required before removal
 
 When evidence is weak, say so and either downgrade confidence or omit the finding.

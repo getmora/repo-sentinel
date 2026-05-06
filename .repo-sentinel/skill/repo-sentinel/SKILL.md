@@ -15,12 +15,13 @@ Use this skill to perform a structured repository audit by combining local scann
 4. Run `.repo-sentinel/scripts/audit.sh --full` only when the user asks for a full audit.
 5. Run `node .repo-sentinel/scripts/normalize.mjs`.
 6. Read `.repo-sentinel/reports/normalized/index.md`.
-7. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
-8. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
-9. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
-10. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
-11. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
-12. Also create `.repo_sentinal/` and write the same final report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
+7. Perform the context pass before interpreting scanner findings, especially Fallow output.
+8. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
+9. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
+10. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
+11. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
+12. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
+13. Also create `.repo_sentinal/` and write the same final report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
 
 ## Invocation
 
@@ -40,6 +41,23 @@ If the current Codex client does not support slash commands for custom skills, u
 
 Use subagents when they can review independent evidence in parallel without modifying files. Keep orchestration, prioritization, final decisions, and final report writing in the main agent.
 
+## Context Pass
+
+Before converting scanner output into findings, build a short repository context model:
+
+- Identify the application type, runtime, framework, package manager, deployment target, and main entrypoints.
+- Read `README`, package manifests, workspace config, routing files, framework config, build scripts, test scripts, deployment config, and public export surfaces where present.
+- Note dynamic-loading patterns, framework conventions, generated files, codegen outputs, runtime-referenced files, public APIs, scheduled jobs, CLI entrypoints, and integration boundaries.
+- Use this context to decide whether a scanner result is actionable, ambiguous, or a coverage gap.
+
+For Fallow specifically, treat dead-code output as cleanup candidates, not deletion proof. Do not recommend deleting a file, export, dependency, route, or module unless the context pass supports that it is not used by framework conventions, dynamic imports, public API consumers, build tooling, tests, runtime configuration, or external integrations. If the context is incomplete, downgrade confidence or recommend verification instead of deletion.
+
+Do not run Fallow fix commands or modify application source code during a Repo Sentinel audit.
+
+If using subagents, give the context pass to the relevant subagents and require them to preserve the distinction between Fallow evidence and Codex inference.
+
+## Subagent Slices
+
 After reading `.repo-sentinel/reports/normalized/index.md`, launch bounded review subagents when available:
 
 - Context and intent, architecture, maintainability, developer experience, and change risk.
@@ -57,11 +75,14 @@ Use one adversarial-review subagent when available after the main draft findings
 ## Review Rules
 
 - Treat scanner output as evidence, not as a complete audit.
+- Treat Fallow dead-code output as cleanup candidates, not deletion proof.
 - Do not invent findings.
 - Do not include generic advice unless it is tied to repository evidence.
 - Clearly distinguish scanner evidence from Codex inference.
+- Require context-pass confirmation before recommending deletion or dependency removal.
 - If a scanner is missing or failed, include that as an audit coverage gap.
 - Do not modify application source code during the audit.
+- Do not run automatic fix commands during the audit.
 - Do not let subagents modify repository files or write the final report.
 - Prioritize by severity, confidence, blast radius, and fix difficulty.
 

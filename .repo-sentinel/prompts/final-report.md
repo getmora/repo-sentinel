@@ -1,13 +1,12 @@
 # Repo Sentinel Final Report Prompt
 
-Produce the final repository audit report and write it to both:
+Produce the technical repository audit report and write it to:
 
 - `.repo-sentinel/reports/final/audit-report.md`
-- `.repo_sentinal/audit-report.md`
 
-Create `.repo_sentinal/` if it does not exist.
+The plain-English report for non-technical readers is produced separately from `.repo-sentinel/prompts/non-technical-report.md`.
 
-The report must include:
+The technical report must include:
 
 1. Executive summary
 2. Overall risk rating
@@ -25,6 +24,6 @@ The report must include:
 14. Verification plan
 15. Guardrails to prevent recurrence
 
-Keep the report evidence-backed. Separate scanner evidence from Codex inference. Omit speculative findings that cannot be tied to repository evidence.
+Keep the technical report evidence-backed. Separate scanner evidence from Codex inference. Omit speculative findings that cannot be tied to repository evidence.
 
 For any Fallow-backed cleanup finding, state that Fallow output is cleanup-candidate evidence, not deletion proof. Include the context-pass evidence used, the remaining uncertainty, and the verification required before deleting code, exports, dependencies, routes, modules, generated artifacts, or configuration-referenced files.

@@ -20,9 +20,10 @@ Use this skill to perform a structured repository audit by combining local scann
 9. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
 10. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
 11. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
-12. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
-13. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
-14. Also create `.repo_sentinal/` and write the same final report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
+12. Use `.repo-sentinel/prompts/final-report.md` to produce the technical final report.
+13. Write the technical final report to `.repo-sentinel/reports/final/audit-report.md`.
+14. Use `.repo-sentinel/prompts/non-technical-report.md` to produce a plain-English report for non-technical readers.
+15. Create `.repo_sentinal/` and write the plain-English report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
 
 ## Invocation
 
@@ -90,12 +91,12 @@ Use one adversarial-review subagent when available after the main draft findings
 - If a scanner is missing or failed, include that as an audit coverage gap.
 - Do not modify application source code during the audit.
 - Do not run automatic fix commands during the audit.
-- Do not let subagents modify repository files or write the final report.
+- Do not let subagents modify repository files or write the technical or non-technical final reports.
 - Prioritize by severity, confidence, blast radius, and fix difficulty.
 
 ## Outputs
 
 - Raw scanner output: `.repo-sentinel/reports/raw/`
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
-- Internal final report: `.repo-sentinel/reports/final/audit-report.md`
-- Human-facing audit report: `.repo_sentinal/audit-report.md`
+- Technical final report: `.repo-sentinel/reports/final/audit-report.md`
+- Plain-English report: `.repo_sentinal/audit-report.md`

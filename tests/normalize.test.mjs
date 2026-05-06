@@ -140,3 +140,26 @@ test("normalizes Fallow snake_case JSON output", () => {
   assert.match(fallowLine, /clone_groups: 1/);
   assert.match(fallowLine, /duplication_percentage: 4.2/);
 });
+
+test("normalizes nonzero zizmor findings as completed evidence", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "repo-sentinel-normalize-"));
+  const rawDir = path.join(workspace, ".repo-sentinel/reports/raw");
+  fs.mkdirSync(rawDir, { recursive: true });
+
+  fs.writeFileSync(
+    path.join(rawDir, "run-manifest.json"),
+    JSON.stringify({
+      scanners: [{ name: "zizmor", status: "completed_with_findings", exitCode: 42 }],
+    }),
+  );
+  fs.writeFileSync(
+    path.join(rawDir, "zizmor.json"),
+    JSON.stringify([{ determinations: { severity: "High" } }]),
+  );
+
+  execFileSync("node", [normalizeScript], { cwd: workspace, stdio: "pipe" });
+
+  const index = fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/normalized/index.md"), "utf8");
+  assert.match(index, /\| zizmor \| completed_with_findings \| 42 .* findings: 1/);
+  assert.match(index, /\| zizmor \| completed_with_findings \| 42 .* high: 1/);
+});

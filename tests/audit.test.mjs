@@ -271,6 +271,58 @@ test("full audit records scanners in recommended evidence order", () => {
   );
 });
 
+test("full audit treats nonzero zizmor with findings as usable evidence", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+  fs.mkdirSync(path.join(workspace, ".github/workflows"), { recursive: true });
+  fs.writeFileSync(path.join(workspace, ".github/workflows/ci.yml"), "name: ci\n");
+  writeExecutable(path.join(binDir, "shellcheck"), "#!/usr/bin/env sh\nprintf '{\"comments\":[]}\\n'\n");
+  writeExecutable(path.join(binDir, "zizmor"), `#!/usr/bin/env sh
+printf '[{"determinations":{"severity":"High"}}]\n'
+exit 14
+`);
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--full"], {
+    cwd: workspace,
+    env: { ...process.env, PATH: `${binDir}:${process.env.PATH}` },
+    stdio: "pipe",
+  });
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/raw/run-manifest.json"), "utf8"),
+  );
+  const zizmorEntry = manifest.scanners.find((scanner) => scanner.name === "zizmor");
+  assert.equal(zizmorEntry.status, "completed_with_findings");
+  assert.equal(zizmorEntry.exitCode, 14);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/raw/zizmor.json"), "utf8")),
+    [{ determinations: { severity: "High" } }],
+  );
+});
+
+test("full audit treats zizmor error exits with partial findings as failed", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+  fs.mkdirSync(path.join(workspace, ".github/workflows"), { recursive: true });
+  fs.writeFileSync(path.join(workspace, ".github/workflows/ci.yml"), "name: ci\n");
+  writeExecutable(path.join(binDir, "shellcheck"), "#!/usr/bin/env sh\nprintf '{\"comments\":[]}\\n'\n");
+  writeExecutable(path.join(binDir, "zizmor"), `#!/usr/bin/env sh
+printf '[{"determinations":{"severity":"High"}}]\n'
+exit 1
+`);
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--full"], {
+    cwd: workspace,
+    env: { ...process.env, PATH: `${binDir}:${process.env.PATH}` },
+    stdio: "pipe",
+  });
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/raw/run-manifest.json"), "utf8"),
+  );
+  const zizmorEntry = manifest.scanners.find((scanner) => scanner.name === "zizmor");
+  assert.equal(zizmorEntry.status, "failed");
+  assert.equal(zizmorEntry.exitCode, 1);
+});
+
 test("full audit can run independent scanners in parallel", () => {
   const { workspace, binDir } = createAuditWorkspace();
 

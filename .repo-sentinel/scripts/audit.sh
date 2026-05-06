@@ -104,6 +104,54 @@ run_scanner() {
   return 0
 }
 
+zizmor_has_findings() {
+  local output="$1"
+  [ -s "$output" ] || return 1
+  node - "$output" <<'NODE'
+const fs = require("node:fs");
+const output = process.argv[2];
+try {
+  const data = JSON.parse(fs.readFileSync(output, "utf8"));
+  const findings = Array.isArray(data) ? data : data?.findings;
+  process.exit(Array.isArray(findings) && findings.length > 0 ? 0 : 1);
+} catch {
+  process.exit(1);
+}
+NODE
+}
+
+zizmor_findings_exit_code() {
+  case "$1" in
+    11|12|13|14) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+run_zizmor_scanner() {
+  local output="$1"
+  local command_text="zizmor --format=json-v1 . > '$output'"
+
+  if ! command -v zizmor >/dev/null 2>&1; then
+    echo "Skipping zizmor: zizmor is not installed."
+    record "zizmor" "missing" 127 "$output" "$command_text"
+    return 0
+  fi
+
+  echo "Running zizmor..."
+  sh -c "$command_text"
+  local exit_code=$?
+  if [ "$exit_code" -eq 0 ]; then
+    record "zizmor" "ok" "$exit_code" "$output" "$command_text"
+  elif zizmor_findings_exit_code "$exit_code" && zizmor_has_findings "$output"; then
+    echo "zizmor exited with code $exit_code after producing findings. Continuing."
+    record "zizmor" "completed_with_findings" "$exit_code" "$output" "$command_text"
+  else
+    echo "zizmor failed with exit code $exit_code. Continuing."
+    record "zizmor" "failed" "$exit_code" "$output" "$command_text"
+  fi
+  return 0
+}
+
 record_skipped() {
   local name="$1"
   local output="$2"
@@ -280,8 +328,7 @@ scanner_checkov() {
 
 scanner_zizmor() {
   if has_github_actions_input; then
-    run_scanner "zizmor" "zizmor" "$RAW_DIR/zizmor.json" \
-      sh -c "zizmor --format=json-v1 . > '$RAW_DIR/zizmor.json'"
+    run_zizmor_scanner "$RAW_DIR/zizmor.json"
   else
     record_skipped "zizmor" "$RAW_DIR/zizmor.json" "zizmor --format=json-v1 . > '$RAW_DIR/zizmor.json'" "[]"
   fi

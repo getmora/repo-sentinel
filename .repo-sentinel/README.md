@@ -152,6 +152,10 @@ When supported by the active Codex environment, the skill uses parallel subagent
 - Internal final audit report: `.repo-sentinel/reports/final/audit-report.md`
 - Human-facing audit report: `.repo_sentinal/audit-report.md`
 
+## Audit Domains
+
+Repo Sentinel reviews context and intent, architecture, data and state integrity, correctness, security, privacy, compliance and governance, testing, reliability, performance and scalability, maintainability, developer experience, operability, change risk, launch readiness, team ownership and knowledge risk, and risk synthesis and forecasting.
+
 ## Files Safe to Commit
 
 Commit the Repo Sentinel scripts, prompts, skill, README, and `.gitignore` entries.

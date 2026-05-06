@@ -120,3 +120,7 @@ Use the repo-sentinel skill to run a full repository audit and write the final r
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
 - Internal final audit report: `.repo-sentinel/reports/final/audit-report.md`
 - Human-facing audit report: `.repo_sentinal/audit-report.md`
+
+## Audit Domains
+
+Repo Sentinel reviews context and intent, architecture, data and state integrity, correctness, security, privacy, compliance and governance, testing, reliability, performance and scalability, maintainability, developer experience, operability, change risk, launch readiness, team ownership and knowledge risk, and risk synthesis and forecasting.

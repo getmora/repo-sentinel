@@ -42,10 +42,11 @@ Use subagents when they can review independent evidence in parallel without modi
 
 After reading `.repo-sentinel/reports/normalized/index.md`, launch bounded review subagents when available:
 
-- Architecture, maintainability, developer experience, and change risk.
+- Context and intent, architecture, maintainability, developer experience, and change risk.
 - Correctness, data and state integrity, reliability, and testing.
-- Security, privacy, scanner evidence, and dependency or secret risk.
-- Performance, launch readiness, operational risk, and remediation planning.
+- Security, privacy, compliance and governance, scanner evidence, and dependency or secret risk.
+- Performance and scalability, operability, launch readiness, operational risk, and remediation planning.
+- Team ownership and knowledge risk, risk synthesis and forecasting, and cross-domain emergent risk.
 
 Give each subagent `.repo-sentinel/reports/normalized/index.md`, relevant raw scanner paths, and the repository files needed for its slice. Ask each subagent for evidence-backed findings only, with affected files and confidence. Do not ask subagents to write `.repo-sentinel/reports/final/audit-report.md` or modify application source code.
 

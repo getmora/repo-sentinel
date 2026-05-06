@@ -14,11 +14,15 @@ The report must include:
 3. Top 10 findings
 4. Launch blockers
 5. Security and privacy concerns
-6. Reliability and correctness concerns
-7. Maintainability and developer-experience concerns
-8. 7-day remediation plan
-9. 30-day remediation plan
-10. Verification plan
-11. Guardrails to prevent recurrence
+6. Compliance and governance concerns
+7. Reliability, correctness, and data-integrity concerns
+8. Operability, scalability, and performance concerns
+9. Maintainability and developer-experience concerns
+10. Team ownership and knowledge-risk concerns
+11. Risk synthesis and forecasting
+12. 7-day remediation plan
+13. 30-day remediation plan
+14. Verification plan
+15. Guardrails to prevent recurrence
 
 Keep the report evidence-backed. Separate scanner evidence from Codex inference. Omit speculative findings that cannot be tied to repository evidence.

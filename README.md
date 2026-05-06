@@ -47,21 +47,15 @@ Run the same global install command again.
 Run this from the root of the application repository you want to audit.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --install-tools
 ```
 
-This installs or updates the repo-local `.repo-sentinel` audit bundle and creates `.repo_sentinal/` for the human-facing audit report. Existing generated reports are preserved under:
+This installs the global skill, installs or updates the repo-local `.repo-sentinel` audit bundle, creates `.repo_sentinal/` for the human-facing audit report, and installs missing scanner tools where supported. Existing generated reports are preserved under:
 
 - `.repo-sentinel/reports/raw/`
 - `.repo-sentinel/reports/normalized/`
 - `.repo-sentinel/reports/final/`
 - `.repo_sentinal/`
-
-To install the global skill, repo-local bundle, and missing scanner tools in one command on supported systems:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --install-tools
-```
 
 Tool installation is automated on macOS with Homebrew for most tools and npm for `fallow`. On Linux, the setup script prints install guidance.
 
@@ -71,12 +65,6 @@ Install the global skill and repo-local audit bundle together:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all
-```
-
-Install the global skill, repo-local audit bundle, and missing scanner tools where supported:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --install-tools
 ```
 
 Install only the repo-local audit bundle:
@@ -122,22 +110,6 @@ Fallow can also be installed per JavaScript/TypeScript repo:
 npm install --save-dev fallow
 ```
 
-## Run an Audit
-
-Quick audit:
-
-```sh
-bash .repo-sentinel/scripts/audit.sh --quick
-node .repo-sentinel/scripts/normalize.mjs
-```
-
-Full audit:
-
-```sh
-bash .repo-sentinel/scripts/audit.sh --full
-node .repo-sentinel/scripts/normalize.mjs
-```
-
 ## Invoke the Codex Skill
 
 After global installation, invoke the skill in Codex with:
@@ -166,6 +138,22 @@ For a full audit:
 
 ```text
 Use the repo-sentinel skill to run a full repository audit and write the final report to .repo_sentinal/audit-report.md.
+```
+
+## Run an Audit
+
+Quick audit:
+
+```sh
+bash .repo-sentinel/scripts/audit.sh --quick
+node .repo-sentinel/scripts/normalize.mjs
+```
+
+Full audit:
+
+```sh
+bash .repo-sentinel/scripts/audit.sh --full
+node .repo-sentinel/scripts/normalize.mjs
 ```
 
 ## Reports

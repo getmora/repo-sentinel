@@ -6,6 +6,7 @@ NORMALIZED_DIR=".repo-sentinel/reports/normalized"
 FINAL_DIR=".repo-sentinel/reports/final"
 USER_REPORT_DIR=".repo_sentinal"
 MODE="${1:---quick}"
+JOBS="${REPO_SENTINEL_JOBS:-3}"
 
 usage() {
   cat <<'EOF'
@@ -13,6 +14,9 @@ Usage: audit.sh [--quick|--full]
 
   --quick  Run core scanners that are installed. This is the default.
   --full   Run core scanners and optional full-audit scanners that are installed.
+
+Environment:
+  REPO_SENTINEL_JOBS  Maximum scanner jobs to run at once. Default: 3.
 EOF
 }
 
@@ -25,9 +29,19 @@ esac
 mkdir -p "$RAW_DIR" "$NORMALIZED_DIR" "$FINAL_DIR" "$USER_REPORT_DIR"
 
 manifest_tmp="$RAW_DIR/run-manifest.tmp"
+manifest_entries_dir="$RAW_DIR/run-manifest.entries"
 manifest="$RAW_DIR/run-manifest.json"
 : > "$manifest_tmp"
+rm -rf "$manifest_entries_dir"
+mkdir -p "$manifest_entries_dir"
 started_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+case "$JOBS" in
+  ''|*[!0-9]*) JOBS=3 ;;
+esac
+if [ "$JOBS" -lt 1 ]; then
+  JOBS=1
+fi
 
 json_escape() {
   printf '%s' "$1" | node -e 'let data=""; process.stdin.on("data", c => data += c); process.stdin.on("end", () => process.stdout.write(JSON.stringify(data)));'
@@ -39,6 +53,17 @@ record() {
   local exit_code="$3"
   local output="$4"
   local command_text="$5"
+  local target="${REPO_SENTINEL_MANIFEST_ENTRY:-}"
+  if [ -n "$target" ]; then
+    printf '{"name": %s, "status": %s, "exitCode": %s, "output": %s, "command": %s}\n' \
+      "$(json_escape "$name")" \
+      "$(json_escape "$status")" \
+      "$exit_code" \
+      "$(json_escape "$output")" \
+      "$(json_escape "$command_text")" > "$target"
+    return 0
+  fi
+
   local comma=""
   if [ -s "$manifest_tmp" ]; then
     comma=","
@@ -218,57 +243,79 @@ run_fallow_scan() {
   "$fallow_bin" --format json > "$output"
 }
 
-run_scanner "semgrep" "semgrep" "$RAW_DIR/semgrep.json" \
-  semgrep scan --config auto --json --output "$RAW_DIR/semgrep.json"
+scanner_semgrep() {
+  run_scanner "semgrep" "semgrep" "$RAW_DIR/semgrep.json" \
+    semgrep scan --config auto --json --output "$RAW_DIR/semgrep.json"
+}
 
-run_scanner "trivy-fs" "trivy" "$RAW_DIR/trivy-fs.json" \
-  trivy fs --format json --output "$RAW_DIR/trivy-fs.json" .
+scanner_trivy_fs() {
+  run_scanner "trivy-fs" "trivy" "$RAW_DIR/trivy-fs.json" \
+    trivy fs --format json --output "$RAW_DIR/trivy-fs.json" .
+}
 
-if [ "${REPO_SENTINEL_GITLEAKS_HISTORY:-0}" = "1" ]; then
-  run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
-    gitleaks detect --source . --report-format json --report-path "$RAW_DIR/gitleaks.json" --redact --exit-code 0
-else
-  run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
-    gitleaks detect --source . --no-git --report-format json --report-path "$RAW_DIR/gitleaks.json" --redact --exit-code 0
-fi
+scanner_gitleaks() {
+  if [ "${REPO_SENTINEL_GITLEAKS_HISTORY:-0}" = "1" ]; then
+    run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
+      gitleaks detect --source . --report-format json --report-path "$RAW_DIR/gitleaks.json" --redact --exit-code 0
+  else
+    run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
+      gitleaks detect --source . --no-git --report-format json --report-path "$RAW_DIR/gitleaks.json" --redact --exit-code 0
+  fi
+}
 
-if [ "$MODE" = "--full" ]; then
+scanner_syft() {
   run_scanner "syft" "syft" "$RAW_DIR/syft.json" \
     sh -c "syft . -o json > '$RAW_DIR/syft.json'"
+}
 
+scanner_grype() {
   run_scanner "grype" "grype" "$RAW_DIR/grype.json" \
     sh -c "grype . -o json > '$RAW_DIR/grype.json'"
+}
 
+scanner_checkov() {
   run_scanner "checkov" "checkov" "$RAW_DIR/checkov.json" \
     sh -c "checkov -d . -o json > '$RAW_DIR/checkov.json'"
+}
 
+scanner_zizmor() {
   if has_github_actions_input; then
     run_scanner "zizmor" "zizmor" "$RAW_DIR/zizmor.json" \
       sh -c "zizmor --format=json-v1 . > '$RAW_DIR/zizmor.json'"
   else
     record_skipped "zizmor" "$RAW_DIR/zizmor.json" "zizmor --format=json-v1 . > '$RAW_DIR/zizmor.json'" "[]"
   fi
+}
 
+scanner_osv_scanner() {
   run_scanner "osv-scanner" "osv-scanner" "$RAW_DIR/osv-scanner.json" \
     sh -c "osv-scanner scan --format json . > '$RAW_DIR/osv-scanner.json'"
+}
 
+scanner_scorecard() {
   run_scanner "scorecard" "scorecard" "$RAW_DIR/scorecard.json" \
     scorecard --local=. --format=json --output "$RAW_DIR/scorecard.json"
+}
 
+scanner_shellcheck() {
   if has_shellcheck_input; then
     run_scanner "shellcheck" "shellcheck" "$RAW_DIR/shellcheck.json" \
       run_shellcheck_scan "$RAW_DIR/shellcheck.json"
   else
     record_skipped "shellcheck" "$RAW_DIR/shellcheck.json" "shellcheck -f json <shell-files>" '{"comments":[]}'
   fi
+}
 
+scanner_hadolint() {
   if has_hadolint_input; then
     run_scanner "hadolint" "hadolint" "$RAW_DIR/hadolint.json" \
       run_hadolint_scan "$RAW_DIR/hadolint.json"
   else
     record_skipped "hadolint" "$RAW_DIR/hadolint.json" "hadolint --format json <dockerfiles>" "[]"
   fi
+}
 
+scanner_fallow() {
   if has_fallow_input; then
     if fallow_command >/dev/null; then
       run_scanner "fallow" "node" "$RAW_DIR/fallow.json" \
@@ -280,17 +327,102 @@ if [ "$MODE" = "--full" ]; then
   else
     record_skipped "fallow" "$RAW_DIR/fallow.json" "fallow --format json > '$RAW_DIR/fallow.json'" "{}"
   fi
+}
+
+running_pids=""
+running_count=0
+scanner_index=0
+
+wait_for_scanner_jobs() {
+  local pid
+  for pid in $running_pids; do
+    wait "$pid" || true
+  done
+  running_pids=""
+  running_count=0
+}
+
+start_scanner_job() {
+  local name="$1"
+  local function_name="$2"
+  local entry_file
+  scanner_index=$((scanner_index + 1))
+  entry_file="$(printf '%s/%03d-%s.json' "$manifest_entries_dir" "$scanner_index" "$name")"
+
+  if [ "$JOBS" -eq 1 ]; then
+    REPO_SENTINEL_MANIFEST_ENTRY="$entry_file" "$function_name"
+    return 0
+  fi
+
+  (
+    REPO_SENTINEL_MANIFEST_ENTRY="$entry_file"
+    "$function_name"
+  ) &
+  running_pids="$running_pids $!"
+  running_count=$((running_count + 1))
+  if [ "$running_count" -ge "$JOBS" ]; then
+    wait_for_scanner_jobs
+  fi
+}
+
+run_scanner_group() {
+  while [ "$#" -gt 0 ]; do
+    start_scanner_job "$1" "$2"
+    shift 2
+  done
+  wait_for_scanner_jobs
+}
+
+if [ "$MODE" = "--quick" ]; then
+  run_scanner_group \
+    "semgrep" "scanner_semgrep" \
+    "trivy-fs" "scanner_trivy_fs" \
+    "gitleaks" "scanner_gitleaks"
+else
+  run_scanner_group \
+    "shellcheck" "scanner_shellcheck" \
+    "hadolint" "scanner_hadolint" \
+    "zizmor" "scanner_zizmor" \
+    "checkov" "scanner_checkov"
+
+  run_scanner_group \
+    "semgrep" "scanner_semgrep" \
+    "syft" "scanner_syft" \
+    "osv-scanner" "scanner_osv_scanner" \
+    "fallow" "scanner_fallow"
+
+  run_scanner_group \
+    "trivy-fs" "scanner_trivy_fs" \
+    "grype" "scanner_grype" \
+    "scorecard" "scanner_scorecard" \
+    "gitleaks" "scanner_gitleaks"
 fi
+
+append_manifest_entries() {
+  local entry_file
+  local first=1
+  for entry_file in "$manifest_entries_dir"/*.json; do
+    [ -e "$entry_file" ] || continue
+    [ -s "$entry_file" ] || continue
+    if [ "$first" -eq 0 ]; then
+      printf ',\n'
+    fi
+    printf '    '
+    cat "$entry_file"
+    first=0
+  done
+}
 
 {
   printf '{\n'
   printf '  "mode": %s,\n' "$(json_escape "$MODE")"
   printf '  "startedAt": %s,\n' "$(json_escape "$started_at")"
   printf '  "scanners": [\n'
-  cat "$manifest_tmp"
+  append_manifest_entries
   printf '\n  ]\n'
   printf '}\n'
 } > "$manifest"
 
 rm -f "$manifest_tmp"
+rm -rf "$manifest_entries_dir"
 echo "Wrote $manifest"

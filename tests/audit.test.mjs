@@ -228,3 +228,77 @@ done
   assert.match(gitleaksArgs, /--redact/);
   assert.match(gitleaksArgs, /--exit-code\n0/);
 });
+
+test("full audit records scanners in recommended evidence order", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+  fs.mkdirSync(path.join(workspace, ".github/workflows"), { recursive: true });
+  fs.mkdirSync(path.join(workspace, "node_modules/.bin"), { recursive: true });
+  fs.writeFileSync(path.join(workspace, ".github/workflows/ci.yml"), "name: ci\n");
+  fs.writeFileSync(path.join(workspace, "Dockerfile"), "FROM alpine\n");
+  fs.writeFileSync(path.join(workspace, "script.sh"), "#!/usr/bin/env bash\necho script\n");
+  fs.writeFileSync(path.join(workspace, "package.json"), JSON.stringify({ scripts: {} }));
+
+  writeExecutable(path.join(binDir, "shellcheck"), "#!/usr/bin/env sh\nprintf '{\"comments\":[]}\\n'\n");
+  writeExecutable(path.join(binDir, "hadolint"), "#!/usr/bin/env sh\nprintf '[]\\n'\n");
+  writeExecutable(path.join(binDir, "zizmor"), "#!/usr/bin/env sh\nprintf '[]\\n'\n");
+  writeExecutable(path.join(workspace, "node_modules/.bin/fallow"), "#!/usr/bin/env sh\nprintf '{}\\n'\n");
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--full"], {
+    cwd: workspace,
+    env: { ...process.env, PATH: `${binDir}:${process.env.PATH}` },
+    stdio: "pipe",
+  });
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/raw/run-manifest.json"), "utf8"),
+  );
+  assert.deepEqual(
+    manifest.scanners.map((scanner) => scanner.name),
+    [
+      "shellcheck",
+      "hadolint",
+      "zizmor",
+      "checkov",
+      "semgrep",
+      "syft",
+      "osv-scanner",
+      "fallow",
+      "trivy-fs",
+      "grype",
+      "scorecard",
+      "gitleaks",
+    ],
+  );
+});
+
+test("full audit can run independent scanners in parallel", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+
+  writeExecutable(path.join(binDir, "semgrep"), `#!/usr/bin/env sh
+touch "$PARALLEL_MARKER_DIR/semgrep-start"
+sleep 1
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--output" ]; then shift; printf '{"results":[]}\n' > "$1"; touch "$PARALLEL_MARKER_DIR/semgrep-end"; exit 0; fi
+  shift
+done
+`);
+  writeExecutable(path.join(binDir, "syft"), `#!/usr/bin/env sh
+if [ -f "$PARALLEL_MARKER_DIR/semgrep-start" ] && [ ! -f "$PARALLEL_MARKER_DIR/semgrep-end" ]; then
+  touch "$PARALLEL_MARKER_DIR/overlap"
+fi
+printf '{}\n'
+`);
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--full"], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      PATH: `${binDir}:${process.env.PATH}`,
+      PARALLEL_MARKER_DIR: workspace,
+      REPO_SENTINEL_JOBS: "2",
+    },
+    stdio: "pipe",
+  });
+
+  assert.equal(fs.existsSync(path.join(workspace, "overlap")), true);
+});

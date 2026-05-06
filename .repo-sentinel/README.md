@@ -182,6 +182,15 @@ node .repo-sentinel/scripts/normalize.mjs
 
 Full audits run available core scanners plus available optional full-audit scanners: `syft`, `grype`, `checkov`, `zizmor`, `osv-scanner`, `scorecard`, `shellcheck`, `hadolint`, and `fallow`.
 
+Full audits run scanners in parallel batches with `REPO_SENTINEL_JOBS=3` by default. The manifest keeps the recommended evidence order: scoped checks first, source and dependency evidence next, then heavier filesystem, repository posture, and secret scanning.
+
+To run scanners sequentially for debugging:
+
+```sh
+REPO_SENTINEL_JOBS=1 bash .repo-sentinel/scripts/audit.sh --full
+node .repo-sentinel/scripts/normalize.mjs
+```
+
 To include git history in Gitleaks secret scanning:
 
 ```sh

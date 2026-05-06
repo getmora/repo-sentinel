@@ -8,16 +8,18 @@ CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 SKILL_DEST="$CODEX_SKILLS_DIR/repo-sentinel"
 MODE="global-only"
 RUN_CHECK=1
+INSTALL_TOOLS=0
 
 usage() {
   cat <<'EOF'
-Usage: install.sh [--all|--repo-only|--global-only] [--no-check]
+Usage: install.sh [--all|--repo-only|--global-only] [--install-tools] [--no-check]
 
 Installs or updates Repo Sentinel.
 
   --global-only  Install only the Codex skill into ~/.codex/skills. Default.
   --all          Install the Codex skill and repo-local audit bundle.
   --repo-only    Install only .repo-sentinel into the current repository.
+  --install-tools Install missing scanner tools after repo-local install.
   --no-check     Skip dependency check after repo-local install.
 EOF
 }
@@ -27,6 +29,7 @@ while [ "$#" -gt 0 ]; do
     --all) MODE="all" ;;
     --repo-only) MODE="repo-only" ;;
     --global-only) MODE="global-only" ;;
+    --install-tools) INSTALL_TOOLS=1 ;;
     --no-check) RUN_CHECK=0 ;;
     -h|--help) usage; exit 0 ;;
     *) usage; exit 2 ;;
@@ -92,10 +95,17 @@ install_repo_bundle() {
     grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
   done
 
-  if [ "$RUN_CHECK" -eq 1 ]; then
+  if [ "$INSTALL_TOOLS" -eq 1 ]; then
+    bash .repo-sentinel/scripts/setup.sh --install
+  elif [ "$RUN_CHECK" -eq 1 ]; then
     bash .repo-sentinel/scripts/setup.sh --check
   fi
 }
+
+if [ "$INSTALL_TOOLS" -eq 1 ] && [ "$MODE" = "global-only" ]; then
+  echo "--install-tools requires --all or --repo-only so the repo-local setup script is available."
+  exit 2
+fi
 
 case "$MODE" in
   all)

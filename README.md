@@ -57,6 +57,14 @@ This installs or updates the repo-local `.repo-sentinel` audit bundle and create
 - `.repo-sentinel/reports/final/`
 - `.repo_sentinal/`
 
+To install the global skill, repo-local bundle, and missing scanner tools in one command on supported systems:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --install-tools
+```
+
+Tool installation is automated on macOS with Homebrew for most tools and npm for `fallow`. On Linux, the setup script prints install guidance.
+
 ## Install Options
 
 Install the global skill and repo-local audit bundle together:
@@ -65,10 +73,22 @@ Install the global skill and repo-local audit bundle together:
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all
 ```
 
+Install the global skill, repo-local audit bundle, and missing scanner tools where supported:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --install-tools
+```
+
 Install only the repo-local audit bundle:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
+```
+
+Install only the repo-local audit bundle and missing scanner tools where supported:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only --install-tools
 ```
 
 Skip the dependency check:
@@ -93,6 +113,8 @@ bash .repo-sentinel/scripts/setup.sh --check
 ```
 
 The setup check prints install guidance for missing tools. On macOS, most tools use Homebrew install commands; `fallow` uses `npm install -g fallow`.
+
+The installer also supports `--install-tools` when used with `--all` or `--repo-only`, which runs `bash .repo-sentinel/scripts/setup.sh --install` after the repo-local bundle is installed.
 
 Fallow can also be installed per JavaScript/TypeScript repo:
 

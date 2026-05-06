@@ -55,17 +55,17 @@ Run the same global install command again.
 Run this from the root of the application repository you want to audit.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all --install-tools
+curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --all
 ```
 
-This installs the global skill, installs or updates the repo-local `.repo-sentinel` audit bundle, creates `.repo_sentinal/` for the human-facing audit report, and installs missing scanner tools where supported. Existing generated reports are preserved under:
+This installs the global skill, installs or updates the repo-local `.repo-sentinel` audit bundle, creates `.repo_sentinal/` for the human-facing audit report, and opens the tool install wizard. Existing generated reports are preserved under:
 
 - `.repo-sentinel/reports/raw/`
 - `.repo-sentinel/reports/normalized/`
 - `.repo-sentinel/reports/final/`
 - `.repo_sentinal/`
 
-Tool installation is automated on macOS with Homebrew for most tools and npm for `fallow`. On Linux, the setup script prints install guidance.
+Tool installation is wizard-driven. On macOS, selected tools can be installed with Homebrew for most tools and npm for `fallow`. On Linux, the setup script prints install guidance.
 
 After install attempts, Repo Sentinel re-checks the scanner tools and reports any that are still missing.
 
@@ -81,12 +81,6 @@ Install only the repo-local audit bundle:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only
-```
-
-Install only the repo-local audit bundle and missing scanner tools where supported:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/getmora/repo-sentinel/main/install.sh | bash -s -- --repo-only --install-tools
 ```
 
 Skip the dependency check:
@@ -118,9 +112,9 @@ To install missing tools on macOS where supported:
 bash .repo-sentinel/scripts/setup.sh --install
 ```
 
-The installer also supports `--install-tools` when used with `--all` or `--repo-only`, which runs `bash .repo-sentinel/scripts/setup.sh --install` after the repo-local bundle is installed.
+The installer opens the tool install wizard by default after global, repo-local, and combined installs. Use `--no-check` to skip the wizard.
 
-Install mode re-checks scanner availability after install attempts and exits with a clear missing-tool list if anything could not be installed.
+Install mode re-checks scanner availability after install attempts. The wizard reports tools that remain uninstalled without failing unless a selected tool could not be installed.
 
 To choose missing tools interactively:
 

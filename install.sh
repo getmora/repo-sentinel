@@ -8,7 +8,6 @@ CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 SKILL_DEST="$CODEX_SKILLS_DIR/repo-sentinel"
 MODE="global-only"
 RUN_CHECK=1
-INSTALL_TOOLS=0
 
 usage() {
   cat <<'EOF'
@@ -19,8 +18,8 @@ Installs or updates Repo Sentinel.
   --global-only  Install only the Codex skill into ~/.codex/skills. Default.
   --all          Install the Codex skill and repo-local audit bundle.
   --repo-only    Install only .repo-sentinel into the current repository.
-  --install-tools Install missing scanner tools after repo-local install.
-  --no-check     Skip dependency check after repo-local install.
+  --install-tools Run the install wizard. This is now the default.
+  --no-check     Skip the dependency wizard after install.
 EOF
 }
 
@@ -29,7 +28,7 @@ while [ "$#" -gt 0 ]; do
     --all) MODE="all" ;;
     --repo-only) MODE="repo-only" ;;
     --global-only) MODE="global-only" ;;
-    --install-tools) INSTALL_TOOLS=1 ;;
+    --install-tools) ;;
     --no-check) RUN_CHECK=0 ;;
     -h|--help) usage; exit 0 ;;
     *) usage; exit 2 ;;
@@ -95,17 +94,26 @@ install_repo_bundle() {
     grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
   done
 
-  if [ "$INSTALL_TOOLS" -eq 1 ]; then
-    bash .repo-sentinel/scripts/setup.sh --install
-  elif [ "$RUN_CHECK" -eq 1 ]; then
-    bash .repo-sentinel/scripts/setup.sh --check
+}
+
+setup_script_path() {
+  if [ -x ".repo-sentinel/scripts/setup.sh" ]; then
+    printf '%s\n' ".repo-sentinel/scripts/setup.sh"
+  else
+    printf '%s\n' "$source_dir/.repo-sentinel/scripts/setup.sh"
   fi
 }
 
-if [ "$INSTALL_TOOLS" -eq 1 ] && [ "$MODE" = "global-only" ]; then
-  echo "--install-tools requires --all or --repo-only so the repo-local setup script is available."
-  exit 2
-fi
+run_dependency_wizard() {
+  local setup_script
+  setup_script="$(setup_script_path)"
+  if [ -r /dev/tty ] && [ -t 1 ]; then
+    bash "$setup_script" --wizard < /dev/tty
+  else
+    echo "No interactive terminal detected; running dependency check instead of install wizard."
+    bash "$setup_script" --check
+  fi
+}
 
 case "$MODE" in
   all)
@@ -119,6 +127,10 @@ case "$MODE" in
     install_global_skill
     ;;
 esac
+
+if [ "$RUN_CHECK" -eq 1 ]; then
+  run_dependency_wizard
+fi
 
 echo "Repo Sentinel install complete."
 echo "Restart Codex to pick up newly installed or updated skills."

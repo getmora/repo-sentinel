@@ -28,7 +28,7 @@ function copyInstallerFixture(sourceDir) {
   );
 }
 
-test("installer can install repo tools in the same run", () => {
+test("installer falls back to dependency check without an interactive terminal", () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "repo-sentinel-install-"));
   const sourceDir = path.join(tempDir, "source");
   const targetDir = path.join(tempDir, "target");
@@ -58,7 +58,7 @@ fi
 `,
   );
 
-  execFileSync("bash", [path.join(sourceDir, "install.sh"), "--all", "--install-tools"], {
+  execFileSync("bash", [path.join(sourceDir, "install.sh"), "--all"], {
     cwd: targetDir,
     env: {
       ...process.env,
@@ -69,5 +69,55 @@ fi
     stdio: "pipe",
   });
 
-  assert.equal(fs.readFileSync(logPath, "utf8"), "--install\n");
+  assert.equal(fs.readFileSync(logPath, "utf8"), "--check\n");
+});
+
+test("global installer falls back to dependency check without an interactive terminal", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "repo-sentinel-global-install-"));
+  const sourceDir = path.join(tempDir, "source");
+  const targetDir = path.join(tempDir, "target");
+  const binDir = path.join(tempDir, "bin");
+  const logPath = path.join(tempDir, "setup.log");
+
+  fs.mkdirSync(sourceDir);
+  fs.mkdirSync(targetDir);
+  fs.mkdirSync(binDir);
+  copyInstallerFixture(sourceDir);
+
+  writeExecutable(path.join(binDir, "git"), "#!/usr/bin/env sh\nexit 0\n");
+  writeExecutable(
+    path.join(binDir, "rsync"),
+    `#!/usr/bin/env bash
+set -e
+if [ "$1" = "-a" ]; then shift; fi
+src="$1"
+dest="$2"
+if [[ "$src" == */ ]]; then
+  mkdir -p "$dest"
+  cp -R "$src". "$dest"
+else
+  mkdir -p "$dest"
+  cp -R "$src" "$dest"
+fi
+`,
+  );
+
+  execFileSync("bash", [path.join(sourceDir, "install.sh")], {
+    cwd: targetDir,
+    env: {
+      ...process.env,
+      CODEX_HOME: path.join(tempDir, "codex-home"),
+      PATH: `${binDir}:${process.env.PATH}`,
+      REPO_SENTINEL_TEST_LOG: logPath,
+    },
+    stdio: "pipe",
+  });
+
+  assert.equal(fs.readFileSync(logPath, "utf8"), "--check\n");
+});
+
+test("installer attaches the dependency wizard to the terminal when available", () => {
+  const installer = fs.readFileSync(installerScript, "utf8");
+  assert.match(installer, /<\s*\/dev\/tty/);
+  assert.match(installer, /--wizard/);
 });

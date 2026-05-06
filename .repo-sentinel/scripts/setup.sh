@@ -144,16 +144,51 @@ verify_install_results() {
   fi
 }
 
-install_selected_macos_tools() {
-  local selected_count=0
+install_all_macos_tools() {
   for tool in "$@"; do
     install_macos_tool "$tool" || true
-    selected_count=$((selected_count + 1))
   done
-  if [ "$selected_count" -eq 0 ]; then
-    echo "No tools selected for installation."
-  fi
   verify_install_results
+}
+
+install_wizard_macos_tools() {
+  local selected=("$@")
+  if [ "${#selected[@]}" -eq 0 ]; then
+    echo "No tools selected for installation."
+  else
+    for tool in "${selected[@]}"; do
+      install_macos_tool "$tool" || true
+    done
+  fi
+
+  echo
+  echo "Verifying install results..."
+  missing=()
+  check_group "Core" "${CORE_TOOLS[@]}"
+  check_group "Optional" "${OPTIONAL_TOOLS[@]}"
+
+  selected_missing=()
+  for selected_tool in "${selected[@]}"; do
+    if ! tool_available "$selected_tool"; then
+      selected_missing+=("$selected_tool")
+    fi
+  done
+  if [ "${#selected_missing[@]}" -gt 0 ]; then
+    echo
+    echo "Selected tools still missing after install attempts:"
+    for tool in "${selected_missing[@]}"; do
+      printf '  [missing] %s\n' "$tool"
+    done
+    exit 1
+  fi
+
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo
+    echo "Tools still not installed:"
+    for tool in "${missing[@]}"; do
+      printf '  [missing] %s\n' "$tool"
+    done
+  fi
 }
 
 if [ "${#missing[@]}" -gt 0 ]; then
@@ -179,7 +214,7 @@ if [ "$mode" = "--install" ]; then
       echo "Homebrew is not installed. Install Homebrew first, then rerun this script."
       exit 1
     fi
-    install_selected_macos_tools "${missing[@]}"
+    install_all_macos_tools "${missing[@]}"
   else
     echo "--install is only automated on macOS with Homebrew."
     echo "Use the install guidance above for this platform."
@@ -214,7 +249,7 @@ if [ "$mode" = "--wizard" ]; then
       y|Y|yes|YES) selected+=("$tool") ;;
     esac
   done
-  install_selected_macos_tools "${selected[@]}"
+  install_wizard_macos_tools "${selected[@]}"
 fi
 
 exit 0

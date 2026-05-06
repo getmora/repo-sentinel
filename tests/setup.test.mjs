@@ -76,10 +76,10 @@ exit 0
     input: "y\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\n",
   });
 
-  assert.equal(result.status, 1);
+  assert.equal(result.status, 0);
   assert.match(fs.readFileSync(installLog, "utf8"), /^install git$/m);
   assert.doesNotMatch(fs.readFileSync(installLog, "utf8"), /install node/);
-  assert.match(result.stdout, /Still missing after install attempts:/);
+  assert.match(result.stdout, /Tools still not installed:/);
   assert.match(result.stdout, /  \[missing\] node/);
 });
 

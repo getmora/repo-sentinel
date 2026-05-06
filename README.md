@@ -56,7 +56,14 @@ $repo-sentinel run a full audit
 
 The globally installed skill bootstraps the repo-local `.repo-sentinel` audit bundle if the current repository does not already have it.
 
-After an audit, the plain-English report is available at `.repo_sentinal/audit-report.md`.
+## Report Outputs
+
+Each audit produces two final reports:
+
+- Plain-English report for non-technical readers: `.repo_sentinal/audit-report.md`
+- Technical report for engineering follow-up: `.repo-sentinel/reports/final/audit-report.md`
+
+Start with the plain-English report if you want a scannable action list, launch recommendation, business impact, and owner-style next steps.
 
 If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
 
@@ -182,8 +189,8 @@ node .repo-sentinel/scripts/normalize.mjs
 
 - Raw scanner output: `.repo-sentinel/reports/raw/`
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
-- Technical final audit report: `.repo-sentinel/reports/final/audit-report.md`
 - Plain-English audit report: `.repo_sentinal/audit-report.md`
+- Technical final audit report: `.repo-sentinel/reports/final/audit-report.md`
 
 ## Audit Domains
 

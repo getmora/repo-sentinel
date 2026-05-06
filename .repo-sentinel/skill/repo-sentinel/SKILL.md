@@ -15,13 +15,14 @@ Use this skill to perform a structured repository audit by combining local scann
 4. Run `.repo-sentinel/scripts/audit.sh --full` only when the user asks for a full audit.
 5. Run `node .repo-sentinel/scripts/normalize.mjs`.
 6. Read `.repo-sentinel/reports/normalized/index.md`.
-7. Perform the context pass before interpreting scanner findings, especially Fallow output.
-8. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
-9. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
-10. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
-11. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
-12. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
-13. Also create `.repo_sentinal/` and write the same final report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
+7. For Gitleaks evidence, use the normalized index first. Inspect `.repo-sentinel/reports/raw/gitleaks.json` only for targeted confirmation of a specific redacted finding.
+8. Perform the context pass before interpreting scanner findings, especially Fallow output.
+9. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
+10. Use `.repo-sentinel/prompts/review.md` to produce the main findings.
+11. Use `.repo-sentinel/prompts/adversarial-review.md` to challenge the findings.
+12. Use `.repo-sentinel/prompts/final-report.md` to produce the final report.
+13. Write the final report to `.repo-sentinel/reports/final/audit-report.md`.
+14. Also create `.repo_sentinal/` and write the same final report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
 
 ## Invocation
 
@@ -40,6 +41,12 @@ If the current Codex client does not support slash commands for custom skills, u
 ## Subagent Use
 
 Use subagents when they can review independent evidence in parallel without modifying files. Keep orchestration, prioritization, final decisions, and final report writing in the main agent.
+
+## Gitleaks Handling
+
+Repo Sentinel scans the current working tree with Gitleaks by default, using redacted output and not scanning git history. If the user explicitly asks for git history secret scanning, run the audit with `REPO_SENTINEL_GITLEAKS_HISTORY=1`.
+
+Do not load the full raw Gitleaks JSON into context when it is large. Use `.repo-sentinel/reports/normalized/index.md` for counts and scanner status, then inspect only the specific redacted raw entries needed to verify an evidence-backed finding.
 
 ## Context Pass
 

@@ -12,6 +12,8 @@ Core tools:
 - `trivy`
 - `gitleaks`
 
+Gitleaks scans the current working tree by default with redacted output and does not scan git history unless explicitly enabled.
+
 Optional full-audit tools:
 
 - `syft`
@@ -65,6 +67,8 @@ This installs the global skill, installs or updates the repo-local `.repo-sentin
 
 Tool installation is automated on macOS with Homebrew for most tools and npm for `fallow`. On Linux, the setup script prints install guidance.
 
+After install attempts, Repo Sentinel re-checks the scanner tools and reports any that are still missing.
+
 ## Install Options
 
 Install the global skill and repo-local audit bundle together:
@@ -115,6 +119,8 @@ bash .repo-sentinel/scripts/setup.sh --install
 ```
 
 The installer also supports `--install-tools` when used with `--all` or `--repo-only`, which runs `bash .repo-sentinel/scripts/setup.sh --install` after the repo-local bundle is installed.
+
+Install mode re-checks scanner availability after install attempts and exits with a clear missing-tool list if anything could not be installed.
 
 Most macOS installs use Homebrew. Fallow uses `npm install -g fallow`, or it can be installed in a JavaScript/TypeScript repo with:
 
@@ -175,6 +181,13 @@ node .repo-sentinel/scripts/normalize.mjs
 ```
 
 Full audits run available core scanners plus available optional full-audit scanners: `syft`, `grype`, `checkov`, `zizmor`, `osv-scanner`, `scorecard`, `shellcheck`, `hadolint`, and `fallow`.
+
+To include git history in Gitleaks secret scanning:
+
+```sh
+REPO_SENTINEL_GITLEAKS_HISTORY=1 bash .repo-sentinel/scripts/audit.sh --full
+node .repo-sentinel/scripts/normalize.mjs
+```
 
 ## Reports
 

@@ -171,3 +171,60 @@ printf '{"summary":{"total":1}}\n'
     { summary: { total: 1 } },
   );
 });
+
+test("quick audit scans current tree with redacted Gitleaks output by default", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+  const gitleaksArgsPath = path.join(workspace, "gitleaks-args.txt");
+
+  writeExecutable(path.join(binDir, "gitleaks"), `#!/usr/bin/env sh
+printf '%s\n' "$@" > "$GITLEAKS_ARGS_PATH"
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--report-path" ]; then shift; printf '[]\n' > "$1"; exit 0; fi
+  shift
+done
+`);
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--quick"], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      PATH: `${binDir}:${process.env.PATH}`,
+      GITLEAKS_ARGS_PATH: gitleaksArgsPath,
+    },
+    stdio: "pipe",
+  });
+
+  const gitleaksArgs = fs.readFileSync(gitleaksArgsPath, "utf8");
+  assert.match(gitleaksArgs, /--no-git/);
+  assert.match(gitleaksArgs, /--redact/);
+  assert.match(gitleaksArgs, /--exit-code\n0/);
+});
+
+test("quick audit can opt into Gitleaks git history scanning", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+  const gitleaksArgsPath = path.join(workspace, "gitleaks-history-args.txt");
+
+  writeExecutable(path.join(binDir, "gitleaks"), `#!/usr/bin/env sh
+printf '%s\n' "$@" > "$GITLEAKS_ARGS_PATH"
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--report-path" ]; then shift; printf '[]\n' > "$1"; exit 0; fi
+  shift
+done
+`);
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--quick"], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      PATH: `${binDir}:${process.env.PATH}`,
+      GITLEAKS_ARGS_PATH: gitleaksArgsPath,
+      REPO_SENTINEL_GITLEAKS_HISTORY: "1",
+    },
+    stdio: "pipe",
+  });
+
+  const gitleaksArgs = fs.readFileSync(gitleaksArgsPath, "utf8");
+  assert.doesNotMatch(gitleaksArgs, /--no-git/);
+  assert.match(gitleaksArgs, /--redact/);
+  assert.match(gitleaksArgs, /--exit-code\n0/);
+});

@@ -132,6 +132,20 @@ if [ "$mode" = "--install" ]; then
     for tool in "${missing[@]}"; do
       install_macos_tool "$tool" || true
     done
+
+    echo
+    echo "Verifying install results..."
+    missing=()
+    check_group "Core" "${CORE_TOOLS[@]}"
+    check_group "Optional" "${OPTIONAL_TOOLS[@]}"
+    if [ "${#missing[@]}" -gt 0 ]; then
+      echo
+      echo "Still missing after install attempts:"
+      for tool in "${missing[@]}"; do
+        printf '  [missing] %s\n' "$tool"
+      done
+      exit 1
+    fi
   else
     echo "--install is only automated on macOS with Homebrew."
     echo "Use the install guidance above for this platform."

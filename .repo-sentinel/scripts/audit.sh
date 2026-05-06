@@ -224,8 +224,13 @@ run_scanner "semgrep" "semgrep" "$RAW_DIR/semgrep.json" \
 run_scanner "trivy-fs" "trivy" "$RAW_DIR/trivy-fs.json" \
   trivy fs --format json --output "$RAW_DIR/trivy-fs.json" .
 
-run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
-  gitleaks detect --source . --report-format json --report-path "$RAW_DIR/gitleaks.json"
+if [ "${REPO_SENTINEL_GITLEAKS_HISTORY:-0}" = "1" ]; then
+  run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
+    gitleaks detect --source . --report-format json --report-path "$RAW_DIR/gitleaks.json" --redact --exit-code 0
+else
+  run_scanner "gitleaks" "gitleaks" "$RAW_DIR/gitleaks.json" \
+    gitleaks detect --source . --no-git --report-format json --report-path "$RAW_DIR/gitleaks.json" --redact --exit-code 0
+fi
 
 if [ "$MODE" = "--full" ]; then
   run_scanner "syft" "syft" "$RAW_DIR/syft.json" \

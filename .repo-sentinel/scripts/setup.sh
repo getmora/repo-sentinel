@@ -6,11 +6,33 @@ OPTIONAL_TOOLS=(syft grype checkov jq zizmor osv-scanner scorecard shellcheck ha
 
 usage() {
   cat <<'EOF'
-Usage: setup.sh --check | --install
+Usage: setup.sh --check | --install | --wizard
 
   --check    Check required and optional tool availability.
   --install  Install missing tools where supported.
+  --wizard   Choose which missing tools to install interactively.
 EOF
+}
+
+description_for() {
+  case "$1" in
+    git) echo "version control; required to inspect repository state and history" ;;
+    node) echo "JavaScript runtime; required to normalize scanner output" ;;
+    semgrep) echo "static code analysis for security and correctness patterns" ;;
+    trivy) echo "filesystem, dependency, misconfiguration, and secret scanning" ;;
+    gitleaks) echo "secret scanning for tokens, keys, and credentials" ;;
+    syft) echo "software bill of materials inventory" ;;
+    grype) echo "dependency vulnerability scanning from package inventory" ;;
+    checkov) echo "infrastructure-as-code and configuration checks" ;;
+    jq) echo "JSON inspection helper for manual review" ;;
+    zizmor) echo "GitHub Actions workflow security checks" ;;
+    osv-scanner) echo "open source dependency vulnerability checks" ;;
+    scorecard) echo "repository supply-chain security posture checks" ;;
+    shellcheck) echo "shell script linting and correctness checks" ;;
+    hadolint) echo "Dockerfile linting and container build checks" ;;
+    fallow) echo "JavaScript/TypeScript dead-code and code health analysis" ;;
+    *) echo "scanner or support tool" ;;
+  esac
 }
 
 command_for() {
@@ -70,7 +92,7 @@ install_macos_tool() {
 
 mode="${1:---check}"
 case "$mode" in
-  --check|--install) ;;
+  --check|--install|--wizard) ;;
   -h|--help) usage; exit 0 ;;
   *) usage; exit 2 ;;
 esac
@@ -106,6 +128,34 @@ tool_available() {
 check_group "Core" "${CORE_TOOLS[@]}"
 check_group "Optional" "${OPTIONAL_TOOLS[@]}"
 
+verify_install_results() {
+  echo
+  echo "Verifying install results..."
+  missing=()
+  check_group "Core" "${CORE_TOOLS[@]}"
+  check_group "Optional" "${OPTIONAL_TOOLS[@]}"
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo
+    echo "Still missing after install attempts:"
+    for tool in "${missing[@]}"; do
+      printf '  [missing] %s\n' "$tool"
+    done
+    exit 1
+  fi
+}
+
+install_selected_macos_tools() {
+  local selected_count=0
+  for tool in "$@"; do
+    install_macos_tool "$tool" || true
+    selected_count=$((selected_count + 1))
+  done
+  if [ "$selected_count" -eq 0 ]; then
+    echo "No tools selected for installation."
+  fi
+  verify_install_results
+}
+
 if [ "${#missing[@]}" -gt 0 ]; then
   echo
   echo "Install guidance:"
@@ -129,28 +179,42 @@ if [ "$mode" = "--install" ]; then
       echo "Homebrew is not installed. Install Homebrew first, then rerun this script."
       exit 1
     fi
-    for tool in "${missing[@]}"; do
-      install_macos_tool "$tool" || true
-    done
-
-    echo
-    echo "Verifying install results..."
-    missing=()
-    check_group "Core" "${CORE_TOOLS[@]}"
-    check_group "Optional" "${OPTIONAL_TOOLS[@]}"
-    if [ "${#missing[@]}" -gt 0 ]; then
-      echo
-      echo "Still missing after install attempts:"
-      for tool in "${missing[@]}"; do
-        printf '  [missing] %s\n' "$tool"
-      done
-      exit 1
-    fi
+    install_selected_macos_tools "${missing[@]}"
   else
     echo "--install is only automated on macOS with Homebrew."
     echo "Use the install guidance above for this platform."
     exit 1
   fi
+fi
+
+if [ "$mode" = "--wizard" ]; then
+  if [ "${#missing[@]}" -eq 0 ]; then
+    echo "All checked tools are installed."
+    exit 0
+  fi
+
+  if [ "$os" != "Darwin" ]; then
+    echo "--wizard can list tools on this platform, but automated installation is only supported on macOS with Homebrew."
+    echo "Use the install guidance above for this platform."
+    exit 1
+  fi
+
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "Homebrew is not installed. Install Homebrew first, then rerun this script."
+    exit 1
+  fi
+
+  selected=()
+  echo
+  echo "Install wizard:"
+  for tool in "${missing[@]}"; do
+    printf 'Install %s? %s [%s] [y/N] ' "$tool" "$(description_for "$tool")" "$(command_for "$tool")"
+    read -r answer || answer=""
+    case "$answer" in
+      y|Y|yes|YES) selected+=("$tool") ;;
+    esac
+  done
+  install_selected_macos_tools "${selected[@]}"
 fi
 
 exit 0

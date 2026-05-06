@@ -49,6 +49,40 @@ test("setup install reports tools that are still missing after install attempts"
   assert.match(result.stdout, /  \[missing\] fallow/);
 });
 
+test("setup wizard installs only selected missing tools", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "repo-sentinel-setup-wizard-"));
+  const binDir = path.join(workspace, "bin");
+  const installLog = path.join(workspace, "install.log");
+  fs.mkdirSync(binDir);
+
+  writeExecutable(path.join(binDir, "uname"), "#!/bin/sh\nprintf 'Darwin\\n'\n");
+  writeExecutable(
+    path.join(binDir, "brew"),
+    `#!/bin/sh
+printf '%s\n' "$*" >> "$INSTALL_LOG"
+if [ "$2" = "git" ]; then
+  printf '#!/bin/sh\nexit 0\n' > "$FAKE_BIN/git"
+  chmod +x "$FAKE_BIN/git"
+fi
+exit 0
+`,
+  );
+  writeExecutable(path.join(binDir, "npm"), "#!/bin/sh\nprintf 'npm %s\\n' \"$*\" >> \"$INSTALL_LOG\"\nexit 0\n");
+
+  const result = spawnSync("/bin/bash", [setupScript, "--wizard"], {
+    cwd: workspace,
+    encoding: "utf8",
+    env: { ...process.env, PATH: binDir, FAKE_BIN: binDir, INSTALL_LOG: installLog },
+    input: "y\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\n",
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(fs.readFileSync(installLog, "utf8"), /^install git$/m);
+  assert.doesNotMatch(fs.readFileSync(installLog, "utf8"), /install node/);
+  assert.match(result.stdout, /Still missing after install attempts:/);
+  assert.match(result.stdout, /  \[missing\] node/);
+});
+
 test("skill bootstrap does not require scanner tool installation", () => {
   const skill = fs.readFileSync(skillPath, "utf8");
   assert.match(skill, /--repo-only`/);

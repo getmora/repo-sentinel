@@ -6,26 +6,26 @@ Repo Sentinel performs a structured repository audit by combining local scanner 
 
 Core tools:
 
-- `git`
-- `node`
-- `semgrep`
-- `trivy`
-- `gitleaks`
+- `git`: reads repository state and history.
+- `node`: runs the normalizer that turns raw scanner output into a readable index.
+- `semgrep`: checks source code for security, correctness, and risky coding patterns.
+- `trivy`: checks the filesystem for vulnerable dependencies, misconfigurations, and exposed secrets.
+- `gitleaks`: checks the current working tree for leaked tokens, keys, and credentials.
 
 Gitleaks scans the current working tree by default with redacted output and does not scan git history unless explicitly enabled.
 
 Optional full-audit tools:
 
-- `syft`
-- `grype`
-- `checkov`
-- `jq`
-- `zizmor`
-- `osv-scanner`
-- `scorecard`
-- `shellcheck`
-- `hadolint`
-- `fallow`
+- `syft`: creates a software bill of materials, which is an inventory of packages in the repo.
+- `grype`: checks dependencies for known vulnerabilities.
+- `checkov`: checks infrastructure and configuration files for security issues.
+- `jq`: helps inspect JSON scanner output during manual review.
+- `zizmor`: checks GitHub Actions workflows for security risks.
+- `osv-scanner`: checks open source dependencies against OSV vulnerability data.
+- `scorecard`: checks repository supply-chain security posture.
+- `shellcheck`: checks shell scripts for bugs and unsafe patterns.
+- `hadolint`: checks Dockerfiles for container build and security issues.
+- `fallow`: checks JavaScript and TypeScript projects for dead code and code health signals.
 
 Quick audits run available core scanners only. Full audits also run available optional scanners when the tool is installed and matching repository inputs exist.
 
@@ -121,6 +121,12 @@ bash .repo-sentinel/scripts/setup.sh --install
 The installer also supports `--install-tools` when used with `--all` or `--repo-only`, which runs `bash .repo-sentinel/scripts/setup.sh --install` after the repo-local bundle is installed.
 
 Install mode re-checks scanner availability after install attempts and exits with a clear missing-tool list if anything could not be installed.
+
+To choose missing tools interactively:
+
+```sh
+bash .repo-sentinel/scripts/setup.sh --wizard
+```
 
 Most macOS installs use Homebrew. Fallow uses `npm install -g fallow`, or it can be installed in a JavaScript/TypeScript repo with:
 

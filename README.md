@@ -10,23 +10,23 @@ Quick audits use `semgrep`, `trivy`, and `gitleaks` when available. Full audits 
 
 Quick audits run available core scanners:
 
-- `semgrep`
-- `trivy`
-- `gitleaks`
+- `semgrep`: checks source code for security, correctness, and risky coding patterns.
+- `trivy`: checks the filesystem for vulnerable dependencies, misconfigurations, and exposed secrets.
+- `gitleaks`: checks the current working tree for leaked tokens, keys, and credentials.
 
 Gitleaks scans the current working tree by default with redacted output and does not scan git history unless explicitly enabled.
 
 Full audits also run available optional scanners:
 
-- `syft`
-- `grype`
-- `checkov`
-- `zizmor`
-- `osv-scanner`
-- `scorecard`
-- `shellcheck`
-- `hadolint`
-- `fallow`
+- `syft`: creates a software bill of materials, which is an inventory of packages in the repo.
+- `grype`: checks dependencies for known vulnerabilities.
+- `checkov`: checks infrastructure and configuration files for security issues.
+- `zizmor`: checks GitHub Actions workflows for security risks.
+- `osv-scanner`: checks open source dependencies against OSV vulnerability data.
+- `scorecard`: checks repository supply-chain security posture.
+- `shellcheck`: checks shell scripts for bugs and unsafe patterns.
+- `hadolint`: checks Dockerfiles for container build and security issues.
+- `fallow`: checks JavaScript and TypeScript projects for dead code and code health signals.
 
 Some full-audit scanners only run when matching inputs exist. `zizmor` runs for GitHub Actions inputs, `shellcheck` runs for shell scripts, `hadolint` runs for Dockerfiles, and `fallow` runs for JavaScript/TypeScript repos with `package.json`.
 
@@ -109,6 +109,12 @@ The setup check prints install guidance for missing tools. On macOS, most tools 
 The installer also supports `--install-tools` when used with `--all` or `--repo-only`, which runs `bash .repo-sentinel/scripts/setup.sh --install` after the repo-local bundle is installed.
 
 Install mode re-checks scanner availability after install attempts and exits with a clear missing-tool list if anything could not be installed.
+
+To choose missing tools interactively:
+
+```sh
+bash .repo-sentinel/scripts/setup.sh --wizard
+```
 
 Fallow can also be installed per JavaScript/TypeScript repo:
 

@@ -28,6 +28,15 @@ Use evidence-first reasoning. Do not invent findings. Do not include generic adv
 
 Use scanner output only after the context pass. If scanner evidence conflicts with repository context, explain the conflict and downgrade confidence unless source evidence resolves it.
 
+If `.repo-sentinel/reports/previous/` exists, read the prior normalized index and prior final reports linked from the current normalized index before drafting findings. Classify current findings as:
+
+- new: current evidence appears in this scan and was not present in the previous scan context
+- persistent: materially the same issue appeared in the previous scan context and still exists
+- potentially resolved: a previous finding is absent from current scanner evidence, but source verification is still required
+- unverified carry-forward: the previous finding may still matter, but current evidence is insufficient to classify it
+
+Do not redo unchanged previous analysis as if it is new work. Summarize persistent findings briefly, then focus review time on changed evidence, new source changes, unresolved high-risk findings, and coverage gaps.
+
 Fallow safety rule: Treat Fallow dead-code output as cleanup candidates, not deletion proof. Do not recommend deleting files, exports, dependencies, routes, modules, or generated artifacts unless the context pass supports that they are not used by framework conventions, dynamic imports, public API consumers, build tooling, tests, runtime configuration, scheduled jobs, CLI entrypoints, or external integrations. If evidence is incomplete, recommend verification steps instead of deletion.
 
 When using subagents, split the review into independent domain slices and require each subagent to return only evidence-backed findings for its slice. Merge the subagent outputs in the main agent, remove duplicates, and keep final prioritization in the main agent.
@@ -48,6 +57,7 @@ Each finding must include:
 - failure scenario
 - recommended fix
 - verification step
+- previous scan status: new / persistent / potentially resolved / unverified carry-forward / no previous scan context
 
 For any finding based on Fallow output, the evidence must explicitly separate:
 

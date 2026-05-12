@@ -4,6 +4,8 @@ set -u
 RAW_DIR=".repo-sentinel/reports/raw"
 NORMALIZED_DIR=".repo-sentinel/reports/normalized"
 FINAL_DIR=".repo-sentinel/reports/final"
+HISTORY_DIR=".repo-sentinel/reports/history"
+PREVIOUS_DIR=".repo-sentinel/reports/previous"
 USER_REPORT_DIR=".repo_sentinal"
 MODE="${1:---quick}"
 JOBS="${REPO_SENTINEL_JOBS:-3}"
@@ -26,7 +28,61 @@ case "$MODE" in
   *) usage; exit 2 ;;
 esac
 
-mkdir -p "$RAW_DIR" "$NORMALIZED_DIR" "$FINAL_DIR" "$USER_REPORT_DIR"
+mkdir -p "$RAW_DIR" "$NORMALIZED_DIR" "$FINAL_DIR" "$HISTORY_DIR" "$USER_REPORT_DIR"
+
+copy_if_present() {
+  local source="$1"
+  local target="$2"
+  if [ -f "$source" ]; then
+    mkdir -p "$(dirname "$target")"
+    cp "$source" "$target"
+  fi
+}
+
+archive_previous_run() {
+  local has_previous=0
+  local timestamp
+  local snapshot_dir
+  local raw_file
+
+  for raw_file in "$RAW_DIR"/*.json "$NORMALIZED_DIR/index.md" "$FINAL_DIR/audit-report.md" "$USER_REPORT_DIR/audit-report.md"; do
+    if [ -f "$raw_file" ]; then
+      has_previous=1
+      break
+    fi
+  done
+
+  if [ "$has_previous" -eq 0 ]; then
+    return 0
+  fi
+
+  timestamp="$(date -u +"%Y%m%dT%H%M%SZ")"
+  snapshot_dir="$HISTORY_DIR/$timestamp"
+  if [ -e "$snapshot_dir" ]; then
+    snapshot_dir="$HISTORY_DIR/${timestamp}-$$"
+  fi
+
+  rm -rf "$PREVIOUS_DIR"
+  mkdir -p "$PREVIOUS_DIR/raw" "$PREVIOUS_DIR/normalized" "$PREVIOUS_DIR/final" "$PREVIOUS_DIR/user"
+  mkdir -p "$snapshot_dir/raw" "$snapshot_dir/normalized" "$snapshot_dir/final" "$snapshot_dir/user"
+
+  for raw_file in "$RAW_DIR"/*.json; do
+    [ -f "$raw_file" ] || continue
+    copy_if_present "$raw_file" "$PREVIOUS_DIR/raw/$(basename "$raw_file")"
+    copy_if_present "$raw_file" "$snapshot_dir/raw/$(basename "$raw_file")"
+  done
+  copy_if_present "$NORMALIZED_DIR/index.md" "$PREVIOUS_DIR/normalized/index.md"
+  copy_if_present "$NORMALIZED_DIR/index.md" "$snapshot_dir/normalized/index.md"
+  copy_if_present "$FINAL_DIR/audit-report.md" "$PREVIOUS_DIR/final/audit-report.md"
+  copy_if_present "$FINAL_DIR/audit-report.md" "$snapshot_dir/final/audit-report.md"
+  copy_if_present "$USER_REPORT_DIR/audit-report.md" "$PREVIOUS_DIR/user/audit-report.md"
+  copy_if_present "$USER_REPORT_DIR/audit-report.md" "$snapshot_dir/user/audit-report.md"
+  printf '%s\n' "$timestamp" > "$PREVIOUS_DIR/snapshot-id.txt"
+  printf '%s\n' "$timestamp" > "$snapshot_dir/snapshot-id.txt"
+}
+
+archive_previous_run
+rm -f "$RAW_DIR"/*.json
 
 manifest_tmp="$RAW_DIR/run-manifest.tmp"
 manifest_entries_dir="$RAW_DIR/run-manifest.entries"

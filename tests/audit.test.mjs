@@ -229,6 +229,53 @@ done
   assert.match(gitleaksArgs, /--exit-code\n0/);
 });
 
+test("audit archives previous scan context before writing new raw evidence", () => {
+  const { workspace, binDir } = createAuditWorkspace();
+  const rawDir = path.join(workspace, ".repo-sentinel/reports/raw");
+  const normalizedDir = path.join(workspace, ".repo-sentinel/reports/normalized");
+  const finalDir = path.join(workspace, ".repo-sentinel/reports/final");
+  const userReportDir = path.join(workspace, ".repo_sentinal");
+  fs.mkdirSync(rawDir, { recursive: true });
+  fs.mkdirSync(normalizedDir, { recursive: true });
+  fs.mkdirSync(finalDir, { recursive: true });
+  fs.mkdirSync(userReportDir, { recursive: true });
+
+  fs.writeFileSync(path.join(rawDir, "checkov.json"), '{"previous":true}\n');
+  fs.writeFileSync(path.join(normalizedDir, "index.md"), "# Previous normalized index\n");
+  fs.writeFileSync(path.join(finalDir, "audit-report.md"), "# Previous technical report\n");
+  fs.writeFileSync(path.join(userReportDir, "audit-report.md"), "# Previous plain report\n");
+
+  execFileSync("bash", [path.join(workspace, ".repo-sentinel/scripts/audit.sh"), "--quick"], {
+    cwd: workspace,
+    env: { ...process.env, PATH: `${binDir}:${process.env.PATH}` },
+    stdio: "pipe",
+  });
+
+  assert.equal(
+    fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/previous/normalized/index.md"), "utf8"),
+    "# Previous normalized index\n",
+  );
+  assert.equal(
+    fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/previous/final/audit-report.md"), "utf8"),
+    "# Previous technical report\n",
+  );
+  assert.equal(
+    fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/previous/raw/checkov.json"), "utf8"),
+    '{"previous":true}\n',
+  );
+  assert.equal(fs.existsSync(path.join(rawDir, "checkov.json")), false);
+
+  const historyEntries = fs.readdirSync(path.join(workspace, ".repo-sentinel/reports/history"));
+  assert.equal(historyEntries.length, 1);
+  assert.equal(
+    fs.readFileSync(
+      path.join(workspace, ".repo-sentinel/reports/history", historyEntries[0], "user/audit-report.md"),
+      "utf8",
+    ),
+    "# Previous plain report\n",
+  );
+});
+
 test("full audit records scanners in recommended evidence order", () => {
   const { workspace, binDir } = createAuditWorkspace();
   fs.mkdirSync(path.join(workspace, ".github/workflows"), { recursive: true });

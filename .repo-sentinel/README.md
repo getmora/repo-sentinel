@@ -69,6 +69,13 @@ Each audit produces two final reports:
 - Plain-English report for non-technical readers: `.repo_sentinal/audit-report.md`
 - Technical report for engineering follow-up: `.repo-sentinel/reports/final/audit-report.md`
 
+Before a new audit writes fresh scanner output, Repo Sentinel snapshots the active previous run to:
+
+- Latest previous run: `.repo-sentinel/reports/previous/`
+- Older snapshots: `.repo-sentinel/reports/history/<snapshot-id>/`
+
+The normalized index links this previous-run context so repeated audits can mark findings as new, persistent, potentially resolved, or still unverified instead of redoing unchanged analysis.
+
 Start with the plain-English report if you want a scannable action list, launch recommendation, business impact, and owner-style next steps.
 
 If the current Codex client does not support slash commands for custom skills, use the `$repo-sentinel` form.
@@ -104,6 +111,8 @@ This installs or updates the global skill runtime, initializes local report fold
 - `.repo-sentinel/reports/raw/`
 - `.repo-sentinel/reports/normalized/`
 - `.repo-sentinel/reports/final/`
+- `.repo-sentinel/reports/previous/`
+- `.repo-sentinel/reports/history/`
 - `.repo_sentinal/`
 
 Tool installation is wizard-driven. On macOS, selected tools can be installed with Homebrew for most tools and npm for `fallow`. On Linux, the setup script prints install guidance.
@@ -213,6 +222,8 @@ node "$HOME/.codex/skills/repo-sentinel/scripts/normalize.mjs"
 
 - Raw scanner output: `.repo-sentinel/reports/raw/`
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
+- Previous scan snapshot: `.repo-sentinel/reports/previous/`
+- Historical scan snapshots: `.repo-sentinel/reports/history/`
 - Plain-English audit report: `.repo_sentinal/audit-report.md`
 - Technical final audit report: `.repo-sentinel/reports/final/audit-report.md`
 
@@ -229,4 +240,6 @@ Do not commit generated report output from:
 - `.repo-sentinel/reports/raw/`
 - `.repo-sentinel/reports/normalized/`
 - `.repo-sentinel/reports/final/`
+- `.repo-sentinel/reports/previous/`
+- `.repo-sentinel/reports/history/`
 - `.repo_sentinal/`

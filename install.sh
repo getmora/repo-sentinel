@@ -88,10 +88,10 @@ ensure_repo_outputs() {
   echo "Initializing Repo Sentinel report folders in $(pwd)..."
   mkdir -p .repo-sentinel
   rm -rf .repo-sentinel/scripts .repo-sentinel/prompts .repo-sentinel/skill .repo-sentinel/README.md .repo-sentinel/VERSION
-  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final .repo_sentinal
+  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final .repo-sentinel/reports/previous .repo-sentinel/reports/history .repo_sentinal
 
   touch .gitignore
-  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/" ".repo_sentinal/"; do
+  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/" ".repo-sentinel/reports/previous/" ".repo-sentinel/reports/history/" ".repo_sentinal/"; do
     grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
   done
 }
@@ -105,11 +105,11 @@ install_repo_bundle() {
   rsync -a "$source_dir/.repo-sentinel/scripts" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/prompts" .repo-sentinel/
   rsync -a "$source_dir/.repo-sentinel/skill" .repo-sentinel/
-  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final .repo_sentinal
+  mkdir -p .repo-sentinel/reports/raw .repo-sentinel/reports/normalized .repo-sentinel/reports/final .repo-sentinel/reports/previous .repo-sentinel/reports/history .repo_sentinal
   chmod +x .repo-sentinel/scripts/setup.sh .repo-sentinel/scripts/audit.sh .repo-sentinel/scripts/normalize.mjs
 
   touch .gitignore
-  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/" ".repo_sentinal/"; do
+  for line in ".repo-sentinel/reports/raw/" ".repo-sentinel/reports/normalized/" ".repo-sentinel/reports/final/" ".repo-sentinel/reports/previous/" ".repo-sentinel/reports/history/" ".repo_sentinal/"; do
     grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
   done
 

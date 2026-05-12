@@ -15,16 +15,17 @@ The report must include:
 1. Status at a glance
 2. Overall risk rating in plain English
 3. Launch recommendation
-4. The most important actions to take next
-5. Plain-English issue list
-6. Security and privacy issues
-7. Reliability and correctness issues
-8. Maintainability and delivery-risk issues
-9. What can wait
-10. 7-day action plan
-11. 30-day action plan
-12. What to verify after fixes
-13. Open questions and coverage gaps
+4. What changed since the previous scan
+5. The most important actions to take next
+6. Plain-English issue list
+7. Security and privacy issues
+8. Reliability and correctness issues
+9. Maintainability and delivery-risk issues
+10. What can wait
+11. 7-day action plan
+12. 30-day action plan
+13. What to verify after fixes
+14. Open questions and coverage gaps
 
 For each issue, include:
 
@@ -36,6 +37,7 @@ For each issue, include:
 - The next concrete action
 - Where to look, using affected files or system areas when known
 - Evidence source, clearly marked as scanner evidence, Codex inference, or both
+- Previous scan status: new, still present, possibly fixed, still needs checking, or no previous scan available
 
 Rules:
 
@@ -45,6 +47,7 @@ Rules:
 - Do not include exploit instructions, secret values, or sensitive data.
 - Do not invent issues.
 - Do not use generic advice unless it is tied to repository evidence.
+- If previous scan context exists, do not repeat unchanged old analysis in full. Say what is new, still present, possibly fixed, or still needs checking.
 - If there are no launch blockers, say that clearly.
 - If scanners were missing, skipped, or failed, explain that as an audit coverage gap in plain English.
 - If a finding is uncertain, say what must be checked before making a decision.

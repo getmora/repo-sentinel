@@ -163,3 +163,26 @@ test("normalizes nonzero zizmor findings as completed evidence", () => {
   assert.match(index, /\| zizmor \| completed_with_findings \| 42 .* findings: 1/);
   assert.match(index, /\| zizmor \| completed_with_findings \| 42 .* high: 1/);
 });
+
+test("normalizes previous scan snapshot links when available", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "repo-sentinel-normalize-"));
+  const rawDir = path.join(workspace, ".repo-sentinel/reports/raw");
+  const previousDir = path.join(workspace, ".repo-sentinel/reports/previous");
+  fs.mkdirSync(rawDir, { recursive: true });
+  fs.mkdirSync(path.join(previousDir, "normalized"), { recursive: true });
+  fs.mkdirSync(path.join(previousDir, "final"), { recursive: true });
+  fs.mkdirSync(path.join(previousDir, "raw"), { recursive: true });
+
+  fs.writeFileSync(path.join(rawDir, "run-manifest.json"), JSON.stringify({ scanners: [] }));
+  fs.writeFileSync(path.join(previousDir, "normalized/index.md"), "# Previous index\n");
+  fs.writeFileSync(path.join(previousDir, "final/audit-report.md"), "# Previous report\n");
+  fs.writeFileSync(path.join(previousDir, "raw/run-manifest.json"), "{}\n");
+
+  execFileSync("node", [normalizeScript], { cwd: workspace, stdio: "pipe" });
+
+  const index = fs.readFileSync(path.join(workspace, ".repo-sentinel/reports/normalized/index.md"), "utf8");
+  assert.match(index, /## Previous Scan Context/);
+  assert.match(index, /Previous normalized index/);
+  assert.match(index, /Previous technical report/);
+  assert.match(index, /Previous raw manifest/);
+});

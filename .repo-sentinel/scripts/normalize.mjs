@@ -4,6 +4,7 @@ import path from "node:path";
 
 const rawDir = ".repo-sentinel/reports/raw";
 const normalizedDir = ".repo-sentinel/reports/normalized";
+const previousDir = ".repo-sentinel/reports/previous";
 const indexPath = path.join(normalizedDir, "index.md");
 
 const scannerOutputs = {
@@ -35,6 +36,14 @@ function readJson(filePath) {
       return { ok: false, reason: "missing" };
     }
     return { ok: false, reason: "invalid" };
+  }
+}
+
+function fileExists(filePath) {
+  try {
+    return fs.statSync(filePath).isFile();
+  } catch {
+    return false;
   }
 }
 
@@ -280,6 +289,28 @@ for (const [name, fileName] of Object.entries(scannerOutputs)) {
 
 lines.push(
   "",
+  "## Previous Scan Context",
+  "",
+);
+
+const previousLinks = [
+  ["Previous normalized index", path.join(previousDir, "normalized/index.md"), "../previous/normalized/index.md"],
+  ["Previous technical report", path.join(previousDir, "final/audit-report.md"), "../previous/final/audit-report.md"],
+  ["Previous plain-English report", path.join(previousDir, "user/audit-report.md"), "../previous/user/audit-report.md"],
+  ["Previous raw manifest", path.join(previousDir, "raw/run-manifest.json"), "../previous/raw/run-manifest.json"],
+];
+const availablePreviousLinks = previousLinks.filter(([, filePath]) => fileExists(filePath));
+if (availablePreviousLinks.length === 0) {
+  lines.push("No previous scan snapshot found.", "");
+} else {
+  lines.push("Use the previous scan snapshot to classify repeated findings as persistent, newly appearing evidence as new, and absent prior findings as potentially resolved only after source verification.", "");
+  for (const [label, , link] of availablePreviousLinks) {
+    lines.push(`- ${label}: [${path.basename(link)}](${link})`);
+  }
+  lines.push("");
+}
+
+lines.push(
   "## Manifest",
   "",
   manifestResult.ok
@@ -289,6 +320,7 @@ lines.push(
   "## Review Notes",
   "",
   "- Treat scanner output as evidence, not as a complete audit.",
+  "- Compare against previous scan context when it exists; do not repeat unchanged prior analysis as if it is new work.",
   "- Confirm each high-impact finding against repository source before including it in the final report.",
   "- Mark missing, failed, empty, or invalid scanner output as a coverage gap."
 );

@@ -72,8 +72,12 @@ fi
 
   assert.equal(fs.readFileSync(logPath, "utf8"), "--check\n");
   assert.equal(fs.existsSync(path.join(targetDir, ".repo-sentinel/reports/raw")), true);
+  assert.equal(fs.existsSync(path.join(targetDir, ".repo-sentinel/reports/previous")), true);
+  assert.equal(fs.existsSync(path.join(targetDir, ".repo-sentinel/reports/history")), true);
   assert.equal(fs.existsSync(path.join(targetDir, ".repo-sentinel/scripts/audit.sh")), false);
   assert.match(fs.readFileSync(path.join(targetDir, ".gitignore"), "utf8"), /\.repo-sentinel\/reports\/raw\//);
+  assert.match(fs.readFileSync(path.join(targetDir, ".gitignore"), "utf8"), /\.repo-sentinel\/reports\/previous\//);
+  assert.match(fs.readFileSync(path.join(targetDir, ".gitignore"), "utf8"), /\.repo-sentinel\/reports\/history\//);
 });
 
 test("global installer falls back to dependency check without an interactive terminal", () => {

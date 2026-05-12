@@ -19,15 +19,16 @@ For legacy repo-local installs, `SKILL.md` may live at `.repo-sentinel/skill/rep
 4. Run `bash <runtime_dir>/scripts/audit.sh --full` from the repository root only when the user asks for a full audit.
 5. Run `node <runtime_dir>/scripts/normalize.mjs` from the repository root.
 6. Read `.repo-sentinel/reports/normalized/index.md`.
-7. For Gitleaks evidence, use the normalized index first. Inspect `.repo-sentinel/reports/raw/gitleaks.json` only for targeted confirmation of a specific redacted finding.
-8. Perform the context pass before interpreting scanner findings, especially Fallow output.
-9. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
-10. Use `<runtime_dir>/prompts/review.md` to produce the main findings.
-11. Use `<runtime_dir>/prompts/adversarial-review.md` to challenge the findings.
-12. Use `<runtime_dir>/prompts/final-report.md` to produce the technical final report.
-13. Write the technical final report to `.repo-sentinel/reports/final/audit-report.md`.
-14. Use `<runtime_dir>/prompts/non-technical-report.md` to produce a plain-English report for non-technical readers.
-15. Create `.repo_sentinal/` and write the plain-English report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
+7. If `.repo-sentinel/reports/previous/` exists, read the previous normalized index and prior final reports linked from the current normalized index before starting the review.
+8. For Gitleaks evidence, use the normalized index first. Inspect `.repo-sentinel/reports/raw/gitleaks.json` only for targeted confirmation of a specific redacted finding.
+9. Perform the context pass before interpreting scanner findings, especially Fallow output.
+10. Use parallel subagents for review slices when the current Codex environment supports subagents and the user request permits delegation.
+11. Use `<runtime_dir>/prompts/review.md` to produce the main findings.
+12. Use `<runtime_dir>/prompts/adversarial-review.md` to challenge the findings.
+13. Use `<runtime_dir>/prompts/final-report.md` to produce the technical final report.
+14. Write the technical final report to `.repo-sentinel/reports/final/audit-report.md`.
+15. Use `<runtime_dir>/prompts/non-technical-report.md` to produce a plain-English report for non-technical readers.
+16. Create `.repo_sentinal/` and write the plain-English report to `.repo_sentinal/audit-report.md` so the audit result is easy to view from the repository root.
 
 ## Invocation
 
@@ -68,6 +69,17 @@ Do not run Fallow fix commands or modify application source code during a Repo S
 
 If using subagents, give the context pass to the relevant subagents and require them to preserve the distinction between Fallow evidence and Codex inference.
 
+## Previous Scan Context
+
+Each new audit archives the active reports and raw JSON into `.repo-sentinel/reports/previous/` and `.repo-sentinel/reports/history/<snapshot-id>/` before writing fresh scanner output. Use `.repo-sentinel/reports/previous/` as the immediate prior run and history snapshots for older runs.
+
+When previous scan context exists, compare current evidence against it before drafting findings:
+
+- Mark repeated findings as persistent, not new.
+- Mark newly appearing evidence as new only after current source confirmation.
+- Mark missing prior findings as potentially resolved only after source verification.
+- Avoid redoing unchanged analysis from the previous report; carry it forward briefly with current evidence status.
+
 ## Subagent Slices
 
 After reading `.repo-sentinel/reports/normalized/index.md`, launch bounded review subagents when available:
@@ -88,6 +100,7 @@ Use one adversarial-review subagent when available after the main draft findings
 
 - Treat scanner output as evidence, not as a complete audit.
 - Treat Fallow dead-code output as cleanup candidates, not deletion proof.
+- Use previous scan context when available so repeated audits classify findings as new, persistent, potentially resolved, or still unverified.
 - Do not invent findings.
 - Do not include generic advice unless it is tied to repository evidence.
 - Clearly distinguish scanner evidence from Codex inference.
@@ -102,5 +115,7 @@ Use one adversarial-review subagent when available after the main draft findings
 
 - Raw scanner output: `.repo-sentinel/reports/raw/`
 - Normalized scanner index: `.repo-sentinel/reports/normalized/index.md`
+- Previous scan snapshot: `.repo-sentinel/reports/previous/`
+- Historical scan snapshots: `.repo-sentinel/reports/history/`
 - Technical final report: `.repo-sentinel/reports/final/audit-report.md`
 - Plain-English report: `.repo_sentinal/audit-report.md`
